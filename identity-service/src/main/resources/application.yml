@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+    username: postgres.oouxjqqbbtmuvianrhje
+    password: Nhan2792003@@
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false
+    clean-disabled: true
+
+jwt:
+  jwt-secret: ${JWT_SECRET}
+  jwt-expirationMs: ${JWT_EXPIRATION}
+  jwt-refresh-expirationMs: ${JWT_REFRESH_EXPIRATION}
+
+dotenv:
+  enabled: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /identity
