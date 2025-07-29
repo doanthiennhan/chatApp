@@ -1,0 +1,32 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: doan65003@gmail.com
+    password: hennhpwoskijekyw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  datasource:
+    #    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+    #    username: postgres.oouxjqqbbtmuvianrhje
+    #    password: Nhan2792003@@
+    url: jdbc:postgresql://localhost:5432/fpt
+    username: postgres
+    password: Nhan2792003
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8083
+  servlet:
+    context-path: /mail

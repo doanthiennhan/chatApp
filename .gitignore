@@ -1,0 +1,14 @@
+# Bỏ qua các file cấu hình IDE và editor
+.idea/
+.vscode/
+
+# Bỏ qua file môi trường
+.env
+
+# Bỏ qua thư mục output
+out/
+output/
+identity-service/target/
+FE/node_modules/
+camera-service/target
+identity-service/.env
