@@ -1,5 +1,7 @@
 package com.example.identity_service.service.impl;
 
+import java.text.ParseException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -7,6 +9,8 @@ import java.util.UUID;
 import com.example.identity_service.dto.request.IntrospectRequest;
 import com.example.identity_service.dto.response.IntrospectResponse;
 import com.example.identity_service.util.CookiesUtil;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.SignedJWT;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -62,8 +66,8 @@ public class AuthServiceImpl implements AuthService {
         if (!authenticated)
             throw new AppException(ErrorCode.LOGIN_FAIL);
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId().toString(), user.getEmail(), user.getRoles());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getRoles());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -78,16 +82,16 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String userId = jwtUtil.getUserIdFromToken(refreshToken);
-        Optional<User> userOpt = userRepository.findById(UUID.fromString(userId));
+        Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
         User user = userOpt.get();
 
-        String newAccessToken = jwtUtil.generateAccessToken(user.getUserId().toString(), user.getEmail(),
+        String newAccessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail(),
                 user.getRoles());
-        String newRefreshToken = jwtUtil.generateRefreshToken(user.getUserId().toString());
+        String newRefreshToken = jwtUtil.generateRefreshToken(user.getId());
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
@@ -99,19 +103,22 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public IntrospectResponse introspect(IntrospectRequest request) {
-
+    public IntrospectResponse introspect(IntrospectRequest request) throws ParseException {
         var token = request.getToken();
         boolean isValid = true;
+        SignedJWT jwt = null;
 
         try {
-            var jwtToken = jwtUtil.validateToken(request.getToken());
-        } catch (Exception e) {
+            jwt = jwtUtil.verifyToken(token, false);
+        } catch (AppException | JOSEException | ParseException e) {
             isValid = false;
         }
 
         return IntrospectResponse.builder()
-                .valid(isValid)
-                .build();
+                .userId(
+                        Objects.nonNull(jwt)
+                                ? jwt.getJWTClaimsSet().getSubject()
+                                : null)
+                .valid(isValid).build();
     }
 }

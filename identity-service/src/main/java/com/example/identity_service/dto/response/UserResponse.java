@@ -4,6 +4,8 @@ import com.example.identity_service.enums.Role;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,6 +14,13 @@ import lombok.experimental.FieldDefaults;
 public class UserResponse {
     String id;
     String email;
-    String password;
+    String phone;
+    String username;
     Role role;
+    String avatar;
+
+    Instant createdAt;
+    Instant updatedAt;
+    String createdBy;
+    String updatedBy;
 }

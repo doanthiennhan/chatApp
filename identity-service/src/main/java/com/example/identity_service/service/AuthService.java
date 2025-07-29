@@ -7,6 +7,8 @@ import com.example.identity_service.dto.response.AuthResponse;
 import com.example.identity_service.dto.response.IntrospectResponse;
 import com.example.identity_service.dto.response.UserResponse;
 
+import java.text.ParseException;
+
 public interface AuthService {
     UserResponse signUp(SignUpRequest request);
 
@@ -14,5 +16,5 @@ public interface AuthService {
 
     AuthResponse refreshToken(String refreshToken);
 
-    IntrospectResponse introspect(IntrospectRequest request);
+    IntrospectResponse introspect(IntrospectRequest request) throws ParseException;
 }

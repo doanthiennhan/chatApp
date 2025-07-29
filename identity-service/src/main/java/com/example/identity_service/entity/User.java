@@ -5,21 +5,12 @@ import java.util.UUID;
 
 import com.example.identity_service.enums.Role;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "users")
@@ -27,21 +18,33 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Data
-public class User {
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class User extends Auditable {
     @Id
-    @GeneratedValue
-    @Column(name = "user_id", columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    String id;
 
     @Column(name = "email", nullable = false, unique = true, length = 100)
-    private String email;
+    String email;
 
     @Column(name = "password", nullable = false, length = 100)
-    private String password;
+    String password;
+    
+    @Column
+    String avatar;
+
+    @NotBlank(message = "Username must not be blank")
+    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    private String username;
+
+    @NotBlank(message = "Phone number must not be blank")
+    @Pattern (regexp = "^0\\d{9}$", message = "Phone number must be 10 digits and start with 0")
+    private String phone;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Set<Role> roles;
+    Set<Role> roles;
+
 }

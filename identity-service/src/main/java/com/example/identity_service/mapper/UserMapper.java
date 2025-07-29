@@ -21,7 +21,7 @@ public class UserMapper {
 
     public UserResponse toUserResponse(User user) {
         UserResponse response = new UserResponse();
-        response.setId(user.getUserId() != null ? user.getUserId().toString() : null);
+        response.setId(user.getId() != null ? user.getId() : null);
         response.setEmail(user.getEmail());
         if (user.getRoles() != null && !user.getRoles().isEmpty()) {
             response.setRole(user.getRoles().iterator().next());
