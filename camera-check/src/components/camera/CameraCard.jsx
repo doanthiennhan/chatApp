@@ -1,5 +1,6 @@
 import { Card, Badge, Button, Popconfirm, Space, Tooltip } from "antd";
 import { VideoCameraOutlined, EditOutlined, DeleteOutlined, HeartOutlined } from "@ant-design/icons";
+import { use, useEffect } from "react";
 
 const statusColor = {
   online: "green",
@@ -12,6 +13,7 @@ const qualityColor = {
   good: "blue",
   poor: "red",
 };
+
 
 const CameraCard = ({ camera, onClick, onEdit, onDelete, onCheckHealth }) => (
   <Badge.Ribbon text={camera.status} color={statusColor[camera.status]}>
@@ -31,6 +33,10 @@ const CameraCard = ({ camera, onClick, onEdit, onDelete, onCheckHealth }) => (
             display: 'block',
           }}
           className="camera-card-img"
+          onError={() => {
+        console.error("Image failed to load: ", camera.snapshotUrl);
+      }
+  }
         />
       }
       onClick={() => onClick(camera)}

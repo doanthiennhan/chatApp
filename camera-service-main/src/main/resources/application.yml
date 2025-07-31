@@ -20,6 +20,9 @@ server:
   servlet:
     context-path: /camera
 
+app:
+  base-url: http://localhost:8082/camera
+
 #feign:
 #  client:
 #    config:

@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    #    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+    #    username: postgres.oouxjqqbbtmuvianrhje
+    #    password: Nhan2792003@@
+    url: jdbc:postgresql://localhost:5432/fpt
+    username: postgres
+    password: Nhan2792003
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+camera-service:
+  url: http://localhost:8082/camera
+
+agent:
+  schedule-delay-ms: 60000
+
+server:
+  port: 8084
+  servlet:
+    context-path: /agent

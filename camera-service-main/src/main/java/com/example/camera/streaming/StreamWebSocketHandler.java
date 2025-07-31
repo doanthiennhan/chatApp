@@ -4,6 +4,7 @@ import com.example.camera.entity.Camera;
 import com.example.camera.exception.AppException;
 import com.example.camera.exception.ErrorCode;
 import com.example.camera.repository.CameraRepository;
+import com.example.camera.service.CameraStreamService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 import org.springframework.web.util.UriComponents;
@@ -25,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class StreamWebSocketHandler extends BinaryWebSocketHandler {
 
+    CameraStreamService cameraStreamService;
     CameraRepository cameraRepository;
     Map<String, CameraStream> activeStreams = new ConcurrentHashMap<>();
 
@@ -48,7 +51,20 @@ public class StreamWebSocketHandler extends BinaryWebSocketHandler {
                 log.debug("Error sending message: {}", e.getMessage());
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ClientSession other)) return false;
+            return session.getId().equals(other.session.getId());
+        }
+
+        @Override
+        public int hashCode() {
+            return session.getId().hashCode();
+        }
     }
+
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -74,7 +90,7 @@ public class StreamWebSocketHandler extends BinaryWebSocketHandler {
 
             ClientSession clientSession = new ClientSession(session);
             CameraStream stream = activeStreams.computeIfAbsent(cameraId,
-                    id -> new CameraStream(id, rtspUrl));
+                    id -> new CameraStream(id, rtspUrl, cameraStreamService));
 
             stream.addClient(clientSession);
             session.getAttributes().put("cameraId", cameraId);

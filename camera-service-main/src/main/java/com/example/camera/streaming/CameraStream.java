@@ -1,16 +1,21 @@
 package com.example.camera.streaming;
 
+import com.example.camera.entity.Camera;
+import com.example.camera.repository.CameraRepository;
+import com.example.camera.service.CameraStreamService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -20,14 +25,18 @@ public class CameraStream {
     Process ffmpegProcess;
     final Set<StreamWebSocketHandler.ClientSession> clients = ConcurrentHashMap.newKeySet();
     final AtomicBoolean running = new AtomicBoolean(false);
+    final AtomicLong totalBytesSent = new AtomicLong(0); // NEW
     Thread outputThread;
+    CameraRepository cameraRepository;
+    CameraStreamService cameraStreamService;
 
     @Getter
     String status = "STOPPED";
 
-    public CameraStream(String cameraId, String rtspUrl) {
+    public CameraStream(String cameraId, String rtspUrl, CameraStreamService cameraStreamService) {
         this.cameraId = cameraId;
         this.rtspUrl = rtspUrl;
+        this.cameraStreamService = cameraStreamService;
     }
 
     public synchronized void start() {
@@ -39,9 +48,11 @@ public class CameraStream {
         try {
             ProcessBuilder pb = getProcessBuilder();
             ffmpegProcess = pb.start();
+
             outputThread = new Thread(() -> {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
+                int[] frameCount = {0};
 
                 try {
                     while (running.get() &&
@@ -49,6 +60,11 @@ public class CameraStream {
                         if (bytesRead > 0) {
                             byte[] data = new byte[bytesRead];
                             System.arraycopy(buffer, 0, data, 0, bytesRead);
+
+                            // Tính tổng byte gửi ra
+                            totalBytesSent.addAndGet(bytesRead); // ✅ UPDATE
+
+                            frameCount[0]++;
                             broadcast(data);
                         }
                     }
@@ -62,9 +78,9 @@ public class CameraStream {
             outputThread.setDaemon(true);
             running.set(true);
             outputThread.start();
-            status = "STREAMING";
 
-            // Theo dõi process FFmpeg
+
+            // Monitor process
             new Thread(() -> {
                 try {
                     int exitCode = ffmpegProcess.waitFor();
@@ -76,6 +92,7 @@ public class CameraStream {
                 }
             }, "FFmpeg-Monitor-" + cameraId).start();
 
+            status = "STREAMING";
             log.info("✅ Started streaming for camera {} with {} clients", cameraId, clients.size());
 
         } catch (IOException e) {
@@ -129,31 +146,31 @@ public class CameraStream {
         }
 
         status = "STOPPED";
+        cameraStreamService.saveLastFrame(cameraId);
         log.info("Stopped streaming for camera {}", cameraId);
     }
 
     public void addClient(StreamWebSocketHandler.ClientSession client) {
         clients.add(client);
-        log.info("Added client to camera {}. Total clients: {}",
-                cameraId, clients.size());
+        log.info("Added client to camera {}. Total clients: {}", cameraId, clients.size());
 
-        if (!running.get()) {
+        if (!running.get()) {http://localhost:5173/
             start();
         }
     }
 
     public void removeClient(StreamWebSocketHandler.ClientSession client) {
         clients.remove(client);
-        log.info("Removed client from camera {}. Remaining clients: {}",
-                cameraId, clients.size());
+        log.info("Removed client from camera {}. Remaining clients: {}", cameraId, clients.size());
 
+        System.out.println("số người xem là : "+ clients.size());
         if (clients.isEmpty()) {
+            System.out.println("không còn nguwofi xem nào nữa ");
             stop();
         }
     }
 
     private void broadcast(byte[] data) {
-        // Tạo một bản sao của set clients để tránh ConcurrentModificationException
         Set<StreamWebSocketHandler.ClientSession> currentClients = Set.copyOf(clients);
 
         for (StreamWebSocketHandler.ClientSession client : currentClients) {
@@ -161,12 +178,10 @@ public class CameraStream {
                 if (client.isOpen()) {
                     client.send(data);
                 } else {
-                    // Remove closed sessions
                     clients.remove(client);
                 }
             } catch (Exception e) {
-                log.debug("Error sending data to client for camera {}: {}",
-                        cameraId, e.getMessage());
+                log.debug("Error sending data to client for camera {}: {}", cameraId, e.getMessage());
                 clients.remove(client);
             }
         }
@@ -179,4 +194,5 @@ public class CameraStream {
     public int getClientCount() {
         return clients.size();
     }
+
 }

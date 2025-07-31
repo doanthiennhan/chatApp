@@ -16,7 +16,7 @@ import {
 import dayjs from 'dayjs';
 import JSMpeg from "@cycjimmy/jsmpeg-player";
 import styled from "styled-components";
-import { getWebSocketUrl } from '../../utils/websocketTest';
+import { getWebSocketUrl, getMetadataWebSocketUrl, createWebSocketConnection, parseStreamMetadata } from '../../utils/websocket';
 import { testCanvasRef, waitForCanvasRef } from '../../utils/canvasTest';
 import { getJSMpegOptions } from '../../utils/webglCheck';
 
@@ -112,49 +112,9 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
   const timeoutRef = useRef(null);
   const metricsRef = useRef(null);
   const streamContainerRef = useRef(null);
+  const metadataWebSocketRef = useRef(null);
 
   const currentCamera = selectedCamera || camera;
-
-  // Real-time metrics calculation
-  useEffect(() => {
-    if (!isStreaming || !playerRef.current) return;
-
-    const updateMetrics = () => {
-      if (playerRef.current) {
-        // Calculate FPS
-        const currentTime = playerRef.current.currentTime;
-        const frameCount = playerRef.current.frameCount || 0;
-        const calculatedFps = frameCount > 0 ? Math.round(frameCount / currentTime) : 0;
-        setFps(calculatedFps);
-
-        // Calculate load speed (bytes per second)
-        const bytesLoaded = playerRef.current.bytesLoaded || 0;
-        const loadSpeedKbps = Math.round((bytesLoaded * 8) / 1000); // Convert to kbps
-        setLoadSpeed(loadSpeedKbps);
-
-        // Estimate video quality based on resolution and bitrate
-        const estimatedQuality = loadSpeedKbps > 2000 ? 'HD' : 
-                                loadSpeedKbps > 1000 ? 'SD' : 
-                                loadSpeedKbps > 500 ? 'Low' : 'Poor';
-        setVideoQuality(estimatedQuality);
-
-        // Update real-time status
-        setRealTimeStatus(prev => ({
-          ...prev,
-          uptime: Math.floor(currentTime),
-          isOnline: true,
-          lastSeen: new Date().toISOString()
-        }));
-      }
-    };
-
-    metricsRef.current = setInterval(updateMetrics, 1000);
-    return () => {
-      if (metricsRef.current) {
-        clearInterval(metricsRef.current);
-      }
-    };
-  }, [isStreaming]);
 
   // Set camera location from camera data
   useEffect(() => {
@@ -182,6 +142,10 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       if (metricsRef.current) {
         clearInterval(metricsRef.current);
       }
+      if (metadataWebSocketRef.current) {
+        metadataWebSocketRef.current.close();
+        metadataWebSocketRef.current = null;
+      }
     };
   }, []);
 
@@ -197,6 +161,10 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       }
       if (metricsRef.current) {
         clearInterval(metricsRef.current);
+      }
+      if (metadataWebSocketRef.current) {
+        metadataWebSocketRef.current.close();
+        metadataWebSocketRef.current = null;
       }
     }
   }, [isInModal, visible]);
@@ -236,6 +204,68 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  // --- BỔ SUNG: Nhận metadata realtime qua WebSocket ---
+  const startMetadataStream = () => {
+    if (!currentCamera?.id) return;
+    const metadataUrl = getMetadataWebSocketUrl(currentCamera.id);
+
+    if (metadataWebSocketRef.current) {
+      metadataWebSocketRef.current.close();
+    }
+
+    metadataWebSocketRef.current = createWebSocketConnection(
+      metadataUrl,
+      (event) => {
+        // Giả sử event.data là JSON string như ví dụ bạn gửi
+        let parsed;
+        try {
+          parsed = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+        if (parsed) {
+          setFps(Number(parsed.fps) || 0);
+
+          // Kiểm tra bitrate hợp lệ
+          const bitrate = Number(parsed.bitrate);
+          setLoadSpeed(isNaN(bitrate) ? 0 : bitrate);
+
+          setStreamInfo(prev => ({
+            ...prev,
+            resolution: parsed.resolution,
+            updatedAt: new Date().toISOString()
+          }));
+
+          setVideoQuality(
+            !isNaN(bitrate)
+              ? (bitrate > 2000 ? 'HD' :
+                 bitrate > 1000 ? 'SD' :
+                 bitrate > 500 ? 'Low' : 'Poor')
+              : 'Unknown'
+          );
+
+          setRealTimeStatus(prev => ({
+            ...prev,
+            uptime: Number(parsed.uptime) || 0,
+            isOnline: parsed.status === 'running',
+            lastSeen: new Date().toISOString()
+          }));
+        }
+      },
+      () => console.log('📡 Metadata connected'),
+      () => console.log('📡 Metadata disconnected'),
+      (err) => console.error('📡 Metadata error:', err)
+    );
+  };
+
+  const stopMetadataStream = () => {
+    if (metadataWebSocketRef.current) {
+      metadataWebSocketRef.current.close();
+      metadataWebSocketRef.current = null;
+    }
+  };
+  // --- HẾT BỔ SUNG ---
 
   const handleStartStream = async () => {
     if (!currentCamera) {
@@ -323,6 +353,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
           format: 'MPEG-TS',
           updatedAt: new Date().toISOString()
         });
+        startMetadataStream();
       } else {
         throw new Error('Failed to create player');
       }
@@ -353,6 +384,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       packetLoss: 0,
       latency: 0
     });
+    stopMetadataStream();
     message.info('Stream đã dừng');
   };
 
@@ -514,10 +546,14 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
 
         <MetricsOverlay>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div>FPS: {fps} | Load: {loadSpeed} kbps</div>
+            <div>FPS: {fps}</div>
+            <div>Bitrate: {loadSpeed} kbps</div>
+            <div>Resolution: {streamInfo?.resolution}</div>
             <div>Quality: <Tag color={getQualityColor(videoQuality)}>{videoQuality}</Tag></div>
-            <div>Location: {cameraLocation}</div>
             <div>Uptime: {realTimeStatus.uptime}s</div>
+            <div>Status: <Tag color={realTimeStatus.isOnline ? 'green' : 'red'}>
+              {realTimeStatus.isOnline ? 'Running' : 'Offline'}
+            </Tag></div>
           </div>
         </MetricsOverlay>
       </StreamContainer>
@@ -527,8 +563,12 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
           <Descriptions.Item label="Camera ID">{currentCamera.id}</Descriptions.Item>
           <Descriptions.Item label="Tên">{currentCamera.name}</Descriptions.Item>
           <Descriptions.Item label="Vị trí">{cameraLocation}</Descriptions.Item>
+          <Descriptions.Item label="Độ phân giải">{streamInfo?.resolution}</Descriptions.Item>
+          <Descriptions.Item label="Bitrate">{loadSpeed} kbps</Descriptions.Item>
           <Descriptions.Item label="Trạng thái">
-            <Badge status={isStreaming ? 'processing' : 'default'} text={isStreaming ? 'Đang stream' : 'Không stream'} />
+            <Tag color={realTimeStatus.isOnline ? 'green' : 'red'}>
+              {realTimeStatus.isOnline ? 'Running' : 'Offline'}
+            </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Chất lượng">
             <Tag color={getQualityColor(videoQuality)}>{videoQuality}</Tag>
@@ -542,4 +582,4 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
   );
 };
 
-export default SpringBootStreamPlayer; 
+export default SpringBootStreamPlayer;

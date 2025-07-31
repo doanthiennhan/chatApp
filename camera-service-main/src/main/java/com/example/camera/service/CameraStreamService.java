@@ -1,13 +1,17 @@
 package com.example.camera.service;
 
-import com.example.camera.dto.request.StreamControlRequest;
+import com.example.camera.entity.Camera;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 public interface CameraStreamService {
 
-    boolean startStream(StreamControlRequest request);
-    boolean stopStream(StreamControlRequest request);
+    void startViewing(String cameraId) throws IOException;
+
+    void stopViewing(String cameraId);
+
+    void saveLastFrame( String cameraId);
 
 
 }
