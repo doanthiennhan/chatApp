@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CameraHealthReport {
-    private Long cameraId;
+    private String cameraId;
     private String status;
 }

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Select, Button, message } from "antd";
-import { createCamera } from "../../services/cameraService";
+import { useDispatch, useSelector } from 'react-redux';
+import { createCamera, updateCamera } from '../../store/slices/cameraSlice';
 
 const { Option } = Select;
 
@@ -15,30 +16,40 @@ const typeOptions = [
   { label: "Analog", value: "ANALOG" },
 ];
 
-const CreateCameraModal = ({ visible, onClose, onSuccess, initialValues, onFinish, isEdit }) => {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = React.useState(false);
+const CreateCameraModal = ({ visible, onClose }) => {
+  const dispatch = useDispatch();
+  const editingCameraId = useSelector(state => state.camera.editingCameraId);
+  const cameraToEdit = useSelector(state => 
+    state.camera.list.find(cam => cam.id === editingCameraId)
+  );
 
-  React.useEffect(() => {
-    if (visible && initialValues) {
-      form.setFieldsValue(initialValues);
-    } else if (visible) {
-      form.resetFields();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  const isEdit = !!editingCameraId;
+
+  useEffect(() => {
+    if (visible) {
+      if (isEdit && cameraToEdit) {
+        form.setFieldsValue(cameraToEdit);
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: "ONLINE", type: "IP" }); // Set default values for new camera
+      }
     }
-  }, [visible, initialValues, form]);
+  }, [visible, isEdit, cameraToEdit, form]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      if (isEdit && onFinish) {
-        await onFinish(values);
+      if (isEdit) {
+        await dispatch(updateCamera({ ...cameraToEdit, ...values })).unwrap();
+        message.success("Cập nhật camera thành công!");
       } else {
-        await createCamera(values);
+        await dispatch(createCamera(values)).unwrap();
         message.success("Tạo camera thành công!");
-        form.resetFields();
-        onSuccess && onSuccess();
-        onClose();
       }
+      if (onClose) onClose();
     } catch (err) {
       message.error((isEdit ? "Cập nhật" : "Tạo") + " camera thất bại: " + (err?.response?.data?.message || err.message));
     } finally {
@@ -46,11 +57,15 @@ const CreateCameraModal = ({ visible, onClose, onSuccess, initialValues, onFinis
     }
   };
 
+  const handleClose = () => {
+    if (onClose) onClose();
+  };
+
   return (
     <Modal
       title={isEdit ? "Sửa Camera" : "Tạo Camera mới"}
       open={visible}
-      onCancel={onClose}
+      onCancel={handleClose}
       footer={null}
       width={500}
       destroyOnHidden
@@ -59,52 +74,51 @@ const CreateCameraModal = ({ visible, onClose, onSuccess, initialValues, onFinis
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={initialValues || { status: "ONLINE", type: "IP" }}
       >
         <Form.Item
           label="Tên camera"
           name="name"
-          rules={[{ required: true, message: "Vui lòng nhập tên camera" }]}
+          rules={[{ required: true, message: "Vui lòng nhập tên camera" }]} 
         >
           <Input placeholder="Nhập tên camera" />
         </Form.Item>
         <Form.Item
           label="RTSP URL"
           name="rtspUrl"
-          rules={[{ required: true, message: "Vui lòng nhập RTSP URL" }]}
+          rules={[{ required: true, message: "Vui lòng nhập RTSP URL" }]} 
         >
           <Input placeholder="http://..." />
         </Form.Item>
         <Form.Item
           label="Vị trí"
           name="location"
-          rules={[{ required: true, message: "Vui lòng nhập vị trí" }]}
+          rules={[{ required: true, message: "Vui lòng nhập vị trí" }]} 
         >
           <Input placeholder="Nhập vị trí" />
         </Form.Item>
         <Form.Item
           label="Trạng thái"
           name="status"
-          rules={[{ required: true, message: "Chọn trạng thái" }]}
+          rules={[{ required: true, message: "Chọn trạng thái" }]} 
         >
           <Select options={statusOptions} placeholder="Chọn trạng thái" />
         </Form.Item>
         <Form.Item
           label="Loại camera"
           name="type"
-          rules={[{ required: true, message: "Chọn loại camera" }]}
+          rules={[{ required: true, message: "Chọn loại camera" }]} 
         >
           <Select options={typeOptions} placeholder="Chọn loại camera" />
         </Form.Item>
         <Form.Item
           label="Nhà cung cấp"
           name="vendor"
-          rules={[{ required: true, message: "Vui lòng nhập nhà cung cấp" }]}
+          rules={[{ required: true, message: "Vui lòng nhập nhà cung cấp" }]} 
         >
           <Input placeholder="Nhập nhà cung cấp" />
         </Form.Item>
         <Form.Item style={{ textAlign: "right", marginTop: 24 }}>
-          <Button onClick={onClose} style={{ marginRight: 8 }}>
+          <Button onClick={handleClose} style={{ marginRight: 8 }}>
             Hủy
           </Button>
           <Button type="primary" htmlType="submit" loading={loading}>

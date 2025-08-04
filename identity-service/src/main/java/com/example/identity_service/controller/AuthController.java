@@ -64,14 +64,15 @@ public class AuthController {
 
 
     @PostMapping("/signin")
-    public ApiResponse<AuthResponse> signIn(@RequestBody @Valid LoginRequest request, HttpServletResponse httpServletResponse) {
+    public ApiResponse<AuthenticationResponse> signIn(@RequestBody @Valid LoginRequest request, HttpServletResponse httpServletResponse) {
         AuthResponse authResponse = authService.signIn(request);
         cookiesUtil.setToken(httpServletResponse, authResponse.getRefreshToken());
+        AuthenticationResponse authenticationResponse  = new AuthenticationResponse(authResponse.getAccessToken());
 
-        return ApiResponse.<AuthResponse>builder()
+        return ApiResponse.<AuthenticationResponse>builder()
                 .code(SuccessCode.LOGIN_SUCCESS.getCode())
                 .message((SuccessCode.LOGIN_SUCCESS.getMessage()))
-                .data(authResponse)
+                .data(authenticationResponse)
                 .build();
     }
 

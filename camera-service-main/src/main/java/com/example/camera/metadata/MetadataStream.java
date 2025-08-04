@@ -39,7 +39,7 @@ public class MetadataStream {
 
             while (running.get()) {
                 try {
-                    Thread.sleep(10_000); // mỗi giây gửi một lần
+                    Thread.sleep(3000); // mỗi giây gửi một lần
                     long uptime = (System.currentTimeMillis() - startTime) / 1000;
 
                     // Gọi ffprobe để lấy metadata từ RTSP stream

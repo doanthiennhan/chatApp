@@ -1,42 +1,106 @@
-import React from 'react';
-import Sidebar from '../components/layout/Sidebar';
-import ChatArea from '../components/chat/ChatArea';
-import { Row, Col, Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Layout, message } from 'antd';
+import ChatSidebar from '../components/chat/ChatSidebar';
+import ChatWindow from '../components/chat/ChatWindow';
+import GroupInfoDrawer from '../components/chat/GroupInfoDrawer';
+import CreateGroupModal from '../components/chat/CreateGroupModal';
+import AddFriendModal from '../components/chat/AddFriendModal';
+import { useSelector, useDispatch } from 'react-redux';
+import { addMessage, fetchConversations } from '../store/slices/chatSlice';
+import io from 'socket.io-client';
+import { getAccessToken } from '../services/identityService';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import AppHeader from '../components/layout/AppHeader';
+import '../styles/Chat.css';
+
+const { Sider, Content } = Layout;
 
 const Chat = () => {
-  const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { conversations, activeConversationId } = useSelector(state => state.chat);
+    const [groupInfoVisible, setGroupInfoVisible] = useState(false);
+    const [createGroupVisible, setCreateGroupVisible] = useState(false);
+    const [addFriendVisible, setAddFriendVisible] = useState(false);
 
-  return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '16px', background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined style={{ fontSize: 20 }} />}
-          onClick={() => navigate("/home")}
-          style={{
-            color: "#1677ff",
-            fontWeight: 600,
-            fontSize: 18,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8
-          }}
-        >
-          Quay lại Home
-        </Button>
-      </div>
-      <Row style={{ flex: 1, height: 'calc(100vh - 80px)' }}>
-        <Col xs={24} md={8} lg={6} style={{ height: '100%' }}>
-          <Sidebar />
-        </Col>
-        <Col xs={24} md={16} lg={18} style={{ height: '100%' }}>
-          <ChatArea />
-        </Col>
-      </Row>
-    </div>
-  );
+    useEffect(() => {
+        console.log('Chat component mounted');
+        const token = getAccessToken();
+        if (token) {
+            const socket = io('ws://localhost:8099', { query: { token } });
+
+            socket.on('connect', () => console.log('Socket.IO connected'));
+
+            socket.on('message', (msg) => {
+                console.log('Received new message from WebSocket:', msg);
+                let messagePayload;
+                if (typeof msg === 'string') {
+                    try {
+                        messagePayload = JSON.parse(msg);
+                    } catch (e) {
+                        console.error("Error parsing websocket message string:", e);
+                        return; // Don't process invalid JSON string
+                    }
+                } else {
+                    messagePayload = msg; // Assume it's already an object
+                }
+
+                dispatch(addMessage(messagePayload));
+            });
+
+            socket.on('disconnect', () => console.log('Socket.IO disconnected'));
+
+            return () => {
+                console.log('Chat component unmounting, closing socket');
+                socket.close();
+            }
+        }
+
+        return () => {
+            console.log('Chat component unmounting');
+        }
+    }, [dispatch]);
+
+    const handleShowGroupInfo = () => {
+        if (activeConversation?.type === 'GROUP') {
+            setGroupInfoVisible(true);
+        }
+    };
+
+    const activeConversation = conversations.find(c => c.id === activeConversationId);
+
+    return (
+        <Layout style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <AppHeader />
+            <Layout style={{ flex: 1, marginTop: 72, overflow: 'hidden' }}>
+                <Sider width={350} className="chat-sidebar-container">
+                    <ChatSidebar 
+                        onCreateGroup={() => setCreateGroupVisible(true)}
+                        onAddFriend={() => setAddFriendVisible(true)}
+                    />
+                </Sider>
+                <Content>
+                    <ErrorBoundary>
+                        <ChatWindow onShowGroupInfo={handleShowGroupInfo} />
+                    </ErrorBoundary>
+                </Content>
+                {activeConversation?.type === 'GROUP' && (
+                    <GroupInfoDrawer 
+                        group={activeConversation}
+                        visible={groupInfoVisible}
+                        onClose={() => setGroupInfoVisible(false)}
+                    />
+                )}
+                <CreateGroupModal 
+                    visible={createGroupVisible}
+                    onCancel={() => setCreateGroupVisible(false)}
+                />
+                <AddFriendModal 
+                    visible={addFriendVisible}
+                    onCancel={() => setAddFriendVisible(false)}
+                />
+            </Layout>
+        </Layout>
+    );
 };
 
-export default Chat; 
+export default Chat;

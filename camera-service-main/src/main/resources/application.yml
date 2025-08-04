@@ -23,6 +23,9 @@ server:
 app:
   base-url: http://localhost:8082/camera
 
+agent-service:
+    url: http://localhost:8084/agent
+
 #feign:
 #  client:
 #    config:

@@ -1,227 +1,163 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Card, Spin, message, App } from 'antd';
 import {
-  Card,
-  Typography,
-  Button,
-  Form,
-  Input,
-  Avatar,
-  Row,
-  Col,
-  message,
-  Descriptions,
-  Divider,
-  Space,
-} from "antd";
-import {
-  UserOutlined,
-  EditOutlined,
-  SaveOutlined,
-  CloseOutlined,
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+    UserOutlined,
+    VideoCameraOutlined,
+    BellOutlined,
+    HistoryOutlined,
+    LockOutlined,
+    MessageOutlined,
+} from '@ant-design/icons';
+import AppHeader from '../components/layout/AppHeader';
+import { useSelector } from 'react-redux';
+import { getCamerasByUserId } from '../services/cameraService';
+import { getUserProfile, getActivityHistory } from '../services/userService';
+import '../styles/UserProfile.css';
 
-const { Title, Text } = Typography;
+// Import tab components
+import ProfileHeader from '../components/profile/ProfileHeader';
+import PersonalInfoTab from '../components/profile/PersonalInfoTab';
+import UserCamerasTab from '../components/profile/UserCamerasTab';
+import NotificationSettingsTab from '../components/profile/NotificationSettingsTab';
+import ActivityHistoryTab from '../components/profile/ActivityHistoryTab';
+import SecuritySettingsTab from '../components/profile/SecuritySettingsTab';
+import ChatSettingsTab from '../components/profile/ChatSettingsTab';
+
+const { Sider, Content } = Layout;
 
 const Profile = () => {
-  // Example user data; replace with real data fetching logic as needed
-  const [userInfo, setUserInfo] = useState({
-    name: "Nguyen Van A",
-    email: "user@example.com",
-    phone: "0123456789",
-    address: "Hanoi, Vietnam",
-  });
-  const [editMode, setEditMode] = useState(false);
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('personal-info');
+    const currentUser = useSelector(state => state.auth.userInfo);
+    const [userProfile, setUserProfile] = useState(null);
+    const [loadingProfile, setLoadingProfile] = useState(true);
+    const [userCameras, setUserCameras] = useState([]);
+    const [loadingCameras, setLoadingCameras] = useState(false);
+    const [activityHistory, setActivityHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const { message } = App.useApp();
 
-  const handleEdit = () => {
-    setEditMode(true);
-    form.setFieldsValue(userInfo);
-  };
+    useEffect(() => {
+        console.log("Profile component mounted or currentUser changed.");
+        console.log("Current User ID:", currentUser?.userId);
 
-  const handleCancel = () => {
-    setEditMode(false);
-    form.resetFields();
-  };
+        if (currentUser?.userId) {
+            // Fetch full user profile
+            setLoadingProfile(true);
+            console.log("Fetching user profile for ID:", currentUser.userId);
+            getUserProfile(currentUser.userId)
+                .then(res => {
+                    console.log("User profile fetched successfully:", res);
+                    setUserProfile(res);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch user profile:", err);
+                    message.error("Không thể tải thông tin cá nhân.");
+                })
+                .finally(() => {
+                    setLoadingProfile(false);
+                    console.log("Finished fetching user profile. loadingProfile:", false);
+                });
 
-  const handleSave = async (values) => {
-    setLoading(true);
-    setTimeout(() => {
-    setUserInfo({ ...userInfo, ...values });
-    setEditMode(false);
-      setLoading(false);
-    message.success("Cập nhật thông tin thành công!");
-    }, 800);
-  };
+            // Fetch user cameras
+            setLoadingCameras(true);
+            console.log("Fetching user cameras for ID:", currentUser.userId);
+            getCamerasByUserId(currentUser.userId)
+                .then(res => {
+                    console.log("User cameras fetched successfully:", res);
+                    setUserCameras(res.data.data);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch user cameras:", err);
+                    message.error("Không thể tải danh sách camera.");
+                })
+                .finally(() => {
+                    setLoadingCameras(false);
+                    console.log("Finished fetching user cameras. loadingCameras:", false);
+                });
 
-  return (
-    <div style={{ 
-      minHeight: "100vh", 
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      padding: "20px",
-      position: "relative"
-    }}>
-      <Button
-        type="text"
-        icon={<ArrowLeftOutlined style={{ fontSize: 20 }} />}
-        onClick={() => navigate("/home")}
-        style={{
-          position: "absolute",
-          left: 16,
-          top: 16,
-          zIndex: 2,
-          color: "#fff",
-          fontWeight: 600,
-          fontSize: 18,
-        }}
-      >
-        Quay lại Home
-      </Button>
-        <Card
-          bordered={false}
-        style={{
-          borderRadius: 18,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-          width: "100%",
-          maxWidth: 480,
-          position: "relative",
-        }}
-        bodyStyle={{ padding: 36, paddingTop: 24 }}
-        >
-        {/* Nút quay lại */}
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined style={{ fontSize: 20 }} />}
-          onClick={() => navigate(-1)}
-          style={{
-            position: "absolute",
-            left: 16,
-            top: 16,
-            zIndex: 2,
-            color: "#1677ff",
-            fontWeight: 600,
-            fontSize: 18,
-          }}
-        >
-          Quay lại
-        </Button>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginBottom: 24,
-            marginTop: 8,
-          }}
-        >
-          <Avatar
-            size={104}
-            icon={<UserOutlined />}
-            style={{ marginBottom: 18, background: "#1677ff" }}
-          />
-          <Title level={3} style={{ marginBottom: 0, textAlign: "center" }}>
-            {userInfo.name}
-          </Title>
-          <Text type="secondary" style={{ fontSize: 16 }}>
-            {userInfo.email}
-          </Text>
-          </div>
-          <Divider />
-          {!editMode ? (
-            <>
-            <Descriptions
-              column={1}
-              size="middle"
-              style={{ marginBottom: 28 }}
-              labelStyle={{ fontWeight: 500, color: "#555" }}
-              contentStyle={{ fontSize: 16 }}
-            >
-              <Descriptions.Item label="Họ và tên">
-                {userInfo.name}
-              </Descriptions.Item>
-              <Descriptions.Item label="Email">
-                {userInfo.email}
-              </Descriptions.Item>
-              <Descriptions.Item label="Số điện thoại">
-                {userInfo.phone}
-              </Descriptions.Item>
-              <Descriptions.Item label="Địa chỉ">
-                {userInfo.address}
-              </Descriptions.Item>
-              </Descriptions>
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                block
-              size="large"
-                onClick={handleEdit}
-              style={{ fontWeight: 600, borderRadius: 8, marginTop: 8 }}
-              >
-                Chỉnh sửa thông tin
-              </Button>
-            </>
-          ) : (
-            <Form
-              form={form}
-              layout="vertical"
-              initialValues={userInfo}
-              onFinish={handleSave}
-              autoComplete="off"
-            style={{ marginTop: 8 }}
-            >
-            <Form.Item
-              label="Họ và tên"
-              name="name"
-              rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-            >
-              <Input size="large" />
-              </Form.Item>
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, type: "email", message: "Email không hợp lệ" },
-              ]}
-            >
-              <Input size="large" disabled />
-              </Form.Item>
-              <Form.Item label="Số điện thoại" name="phone">
-              <Input size="large" />
-              </Form.Item>
-              <Form.Item label="Địa chỉ" name="address">
-              <Input size="large" />
-              </Form.Item>
-              <Form.Item style={{ marginBottom: 0 }}>
-              <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SaveOutlined />}
-                  loading={loading}
-                  style={{ width: "48%", fontWeight: 600, borderRadius: 8 }}
-                  size="large"
-                >
-                  Lưu
-                </Button>
-                <Button
-                  icon={<CloseOutlined />}
-                  style={{ width: "48%", borderRadius: 8 }}
-                  onClick={handleCancel}
-                  size="large"
-                  disabled={loading}
-                >
-                  Hủy
-                </Button>
-              </Space>
-              </Form.Item>
-            </Form>
-          )}
-        </Card>
-    </div>
-  );
+            // Fetch activity history
+            setLoadingHistory(true);
+            console.log("Fetching activity history for ID:", currentUser.userId);
+            getActivityHistory(currentUser.userId)
+                .then(res => {
+                    console.log("Activity history fetched successfully:", res);
+                    setActivityHistory(res);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch activity history:", err);
+                    message.error("Không thể tải lịch sử hoạt động.");
+                })
+                .finally(() => {
+                    setLoadingHistory(false);
+                    console.log("Finished fetching activity history. loadingHistory:", false);
+                });
+        }
+    }, [currentUser]);
+
+    const menuItems = [
+        { key: 'personal-info', icon: <UserOutlined />, label: 'Thông tin cá nhân' },
+        { key: 'my-cameras', icon: <VideoCameraOutlined />, label: 'Camera của tôi' },
+        { key: 'notifications', icon: <BellOutlined />, label: 'Cài đặt thông báo' },
+        { key: 'chat-settings', icon: <MessageOutlined />, label: 'Cài đặt trò chuyện' },
+        { key: 'security', icon: <LockOutlined />, label: 'Bảo mật' },
+        { key: 'history', icon: <HistoryOutlined />, label: 'Lịch sử hoạt động' },
+    ];
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'personal-info':
+                return <PersonalInfoTab user={userProfile} />;
+            case 'my-cameras':
+                return <UserCamerasTab cameras={userCameras} />;
+            case 'notifications':
+                return <NotificationSettingsTab />;
+            case 'history':
+                return <ActivityHistoryTab history={activityHistory} />;
+            case 'security':
+                return <SecuritySettingsTab devices={[]} />;
+            case 'chat-settings':
+                return <ChatSettingsTab />;
+            default:
+                return <PersonalInfoTab user={userProfile} />;
+        }
+    };
+
+    const isLoadingAny = loadingProfile || loadingCameras || loadingHistory;
+
+    return (
+        <Layout style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <AppHeader />
+            <Layout style={{ flex: 1, marginTop: 72 }}>
+                <Sider className="profile-sider" width={250}>
+                    <Menu
+                        mode="inline"
+                        selectedKeys={[activeTab]}
+                        onClick={(e) => setActiveTab(e.key)}
+                        items={menuItems}
+                        style={{ height: '100%', borderRight: 0 }}
+                    />
+                </Sider>
+                <Content className="profile-content">
+                    {loadingProfile || !userProfile ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '120px', width: '100%' }}>
+                            <Spin tip="Đang tải thông tin cá nhân..." size="small" />
+                        </div>
+                    ) : (
+                        <ProfileHeader user={userProfile} />
+                    )}
+                    <Card className="profile-main-card">
+                        {isLoadingAny ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
+                                <Spin tip="Đang tải dữ liệu..." size="large" />
+                            </div>
+                        ) : (
+                            renderContent()
+                        )}
+                    </Card>
+                </Content>
+            </Layout>
+        </Layout>
+    );
 };
 
 export default Profile;

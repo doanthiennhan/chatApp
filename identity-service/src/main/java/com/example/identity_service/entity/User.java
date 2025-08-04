@@ -17,7 +17,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends Auditable {
     @Id
@@ -35,11 +36,11 @@ public class User extends Auditable {
 
     @NotBlank(message = "Username must not be blank")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    private String username;
+    String username;
 
     @NotBlank(message = "Phone number must not be blank")
     @Pattern (regexp = "^0\\d{9}$", message = "Phone number must be 10 digits and start with 0")
-    private String phone;
+    String phone;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

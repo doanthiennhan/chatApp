@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAccessToken } from "./identityService";
 
 const chatApi = axios.create({
   baseURL: "http://localhost:8081/chat/api",
@@ -10,8 +11,7 @@ const chatApi = axios.create({
 
 chatApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    console.log("Access Token:", token);
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -20,43 +20,42 @@ chatApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export const getDirectMessageHistory = (user1, user2, page = 0, size = 30) =>
-  chatApi.get("/history", {
-    params: { user1, user2, page, size },
-  });
+// MESSAGE APIs
+export const createMessage = (conversationId, message, type = "TEXT") =>
+  chatApi.post("/messages/create", { conversationId, message, type });
 
-export const sendDirectMessage = (senderId, receiverId, content) =>
-  chatApi.post("/send", { senderId, receiverId, content });
+export const getMessagesByConversation = (conversationId, page = 1, size = 10) =>
+  chatApi.get(`/messages?conversationId=${conversationId}&page=${page}&size=${size}`);
 
+// CONVERSATION APIs
+export const createConversation = (name, participantIds, type = "GROUP") =>
+  chatApi.post("/conversations/create", { name, participantIds, type });
 
-export const createGroup = (name, type, participantIds) =>
-  chatApi.post("/conversations/create", {
-    name,
-    type,
-    participantIds
-   });
-
-
-
-
-export const addGroupMembers = (groupId, memberIds) =>
-  chatApi.post("/groups/add-members", {
-    groupId,
-    memberIds,
-  });
-
-
-export const getUserChannels = (userId, page = 0, size = 30) =>
+export const getMyConversations = () =>
   chatApi.get("/conversations/my-conversations");
 
+export const searchConversations = (query) =>
+  chatApi.get(`/conversations/search?query=${query}`);
 
-export const getGroupMessageHistory = (groupId, page = 0, size = 30) =>
-  chatApi.get(`/groups/${groupId}/history`, {
-    params: { page, size },
+export const addMembersToConversation = (conversationId, newParticipantIds) =>
+  chatApi.post("/conversations/add-members", {
+    conversationId,
+    newParticipantIds,
   });
 
+export const leaveConversation = (conversationId) =>
+  chatApi.delete(`/conversations/${conversationId}/leave`);
 
-export const sendGroupMessage = (senderId, groupId, content) =>
-  chatApi.post("/send", { senderId, groupId, content });
+export const deleteConversation = (conversationId) =>
+  chatApi.delete(`/conversations/${conversationId}`);
 
-export const getAllGroups = () => chatApi.get("/groups");
+// FRIEND REQUEST APIs
+export const sendFriendRequest = (receiverId) =>
+  chatApi.post("/friends/request", { receiverId });
+
+// USER APIs
+export const searchUsers = (query) => chatApi.get(`/users/search?query=${query}`);
+
+export const getAllUsers = () => chatApi.get("/users");
+
+export default chatApi;

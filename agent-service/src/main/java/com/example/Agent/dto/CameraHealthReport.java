@@ -11,6 +11,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CameraHealthReport {
-    Long cameraId;
+    String cameraId;
     String status;
 }

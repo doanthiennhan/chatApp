@@ -10,26 +10,24 @@ import com.example.camera.exception.ErrorCode;
 import com.example.camera.mappper.CameraMapper;
 import com.example.camera.repository.CameraRepository;
 import com.example.camera.service.CameraService;
-import com.example.camera.util.UrlUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CameraServiceImpl implements CameraService {
-    CameraRepository cameraRepository;
-    UrlUtil urlUtil;
+    private final CameraRepository cameraRepository;
+    private final String baseUrl;
 
-    @Autowired
-    HttpServletRequest request;
+    public CameraServiceImpl(CameraRepository cameraRepository, @Value("${app.base-url}") String baseUrl) {
+        this.cameraRepository = cameraRepository;
+        this.baseUrl = baseUrl;
+    }
 
     @Transactional
     public CameraResponse create(CameraCreateRequest req) {
@@ -37,7 +35,7 @@ public class CameraServiceImpl implements CameraService {
             throw new AppException(ErrorCode.DUPLICATE_RTSP_URL);
         }
         Camera camera = cameraRepository.save(CameraMapper.toEntity(req));
-        String hlsUrl = urlUtil.getBaseUrl(request) + "/output/" + camera.getId() + "/stream.m3u8";
+        String hlsUrl = baseUrl + "/output/" + camera.getId() + "/stream.m3u8";
         camera.setHlsUrl(hlsUrl);
         camera = cameraRepository.save(camera);
         return CameraMapper.toResponse(camera);

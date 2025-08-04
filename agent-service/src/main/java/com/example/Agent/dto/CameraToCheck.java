@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CameraToCheck {
-    Long id;
+    String id;
     String rtspUrl;
 }

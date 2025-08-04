@@ -132,4 +132,9 @@ export const getCameraStreamInfo = async (cameraId) => {
   return response.json();
 };
 
+export const getCamerasByUserId = async (userId) => {
+  const res = await cameraApi.get(`/cameras`);
+  return res.data.data.filter(camera => camera.ownerId === userId); // Assuming ownerId field exists
+};
+
 export default cameraApi; 

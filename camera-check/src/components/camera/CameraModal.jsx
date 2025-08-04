@@ -1,27 +1,33 @@
-import { Modal, Badge, Descriptions, Spin, message } from "antd";
-import { useEffect, useState } from "react";
+import { Modal, Badge, Spin } from "antd";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import StreamPlayer from "./StreamPlayer";
+import { clearSelectedCameraId } from '../../store/slices/cameraSlice';
 
 const statusColor = {
-  online: "green",
-  warning: "gold",
-  offline: "red",
+  ONLINE: "green",
+  WARNING: "gold",
+  OFFLINE: "red",
 };
 
-const qualityColor = {
-  excellent: "green",
-  good: "blue",
-  poor: "red",
-};
+const CameraModal = () => {
+  const dispatch = useDispatch();
+  const selectedCameraId = useSelector(state => state.camera.selectedCameraId);
+  const camera = useSelector(state => 
+    state.camera.list.find(cam => cam.id === selectedCameraId)
+  );
 
-const CameraModal = ({ camera, visible, onClose }) => {
-  const [loading, setLoading] = useState(false);
+  const visible = !!selectedCameraId;
+
+  const handleClose = () => {
+    dispatch(clearSelectedCameraId());
+  };
 
   useEffect(() => {
-    // Không cần gọi API startView/stopView nữa
-    // JSMpegPlayer sẽ tự kết nối WebSocket khi cần
-    console.log('🔧 CameraModal: Camera ready for streaming:', camera?.id);
-  }, [visible, camera?.id]);
+    if (camera) {
+      console.log('🔧 CameraModal: Camera ready for streaming:', camera?.id);
+    }
+  }, [camera]);
 
   return (
     <Modal
@@ -29,13 +35,13 @@ const CameraModal = ({ camera, visible, onClose }) => {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span>{camera?.name || 'Camera'}</span>
           <Badge 
-            status={camera?.status === 'online' ? 'success' : 'error'} 
+            status={camera?.status === 'ONLINE' ? 'success' : 'error'} 
             text={camera?.status || 'unknown'} 
           />
         </div>
       }
       open={visible}
-      onCancel={onClose}
+      onCancel={handleClose}
       footer={null}
       width={900}
       style={{ top: 20 }}

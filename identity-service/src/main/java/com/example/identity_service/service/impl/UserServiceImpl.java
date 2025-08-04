@@ -53,7 +53,9 @@ public class UserServiceImpl implements UserService {
     public PageResponse<UserResponse> getUsers(int page, int size, String search) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Order.desc("createdAt")));
 
-        Page<User> userPage = userRepository.findByUsernameContainingIgnoreCase(search, pageable);
+//        Page<User> userPage = userRepository.findAll(pageable);
+
+        Page<User> userPage = userRepository.searchUsers(search, pageable);
 
         List<UserResponse> userResponses = userPage.getContent().stream()
                 .map(userMapper::toUserResponse).collect(Collectors.toList());

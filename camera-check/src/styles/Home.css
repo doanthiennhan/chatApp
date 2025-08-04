@@ -1,0 +1,127 @@
+
+/* ==========================================================================
+   Home Page Styles
+   ========================================================================== */
+
+/* --- Keyframes for animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-section {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* --- Hero Section --- */
+.home-hero-section {
+  background: linear-gradient(135deg, rgba(22, 119, 255, 0.85), rgba(8, 48, 107, 0.95)), url('https://images.unsplash.com/photo-1584969329950-0572a933343a?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  padding: 100px 40px;
+  border-radius: 24px;
+  margin-bottom: 48px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 10px 30px rgba(8, 48, 107, 0.3);
+}
+
+.home-hero-section .ant-typography {
+    color: white;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.home-hero-section .ant-btn-primary {
+    background: #fff;
+    color: #1677ff;
+    border-color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.home-hero-section .ant-btn-primary:hover {
+    background: #f0f5ff;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* --- Statistic Cards --- */
+.home-statistic-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-radius: 16px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.home-statistic-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    border-color: #1677ff;
+}
+
+.home-statistic-card .ant-statistic-title {
+    font-weight: 500;
+    color: #8c8c8c;
+}
+
+.home-statistic-card .ant-statistic-content {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+/* --- Quick Access & System Health --- */
+.home-section-card {
+    height: 100%;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.home-section-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+}
+
+.home-quick-access-card .ant-btn {
+    height: 60px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.home-quick-access-card .ant-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(22, 119, 255, 0.2);
+}
+
+/* --- Camera List --- */
+.home-camera-list .ant-list-item {
+    padding: 20px 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.home-camera-list .ant-list-item:hover {
+    background-color: #fff;
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+    z-index: 1;
+}
+
+.home-camera-list .ant-list-item-meta-title a {
+    color: #1a1a1a;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.home-camera-list .ant-list-item-meta-title a:hover {
+    color: #1677ff;
+}
+
+.home-camera-list .ant-list-item-meta-description {
+    font-size: 14px;
+}

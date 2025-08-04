@@ -1,0 +1,59 @@
+/* src/styles/UserProfile.css */
+
+.profile-layout {
+    background: #f0f2f5;
+}
+
+.profile-sider {
+    background: #fff !important;
+    padding: 20px 0;
+    border-right: 1px solid #e8e8e8;
+}
+
+.profile-sider .ant-menu {
+    border-inline-end: none !important;
+}
+
+.profile-sider .ant-menu-item {
+    margin: 8px 16px !important;
+    width: calc(100% - 32px) !important;
+    border-radius: 8px !important;
+}
+
+.profile-sider .ant-menu-item-selected {
+    background-color: #e6f7ff !important;
+}
+
+.profile-content {
+    padding: 24px;
+}
+
+.profile-header-card {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.profile-header-card .ant-card-body {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.profile-main-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.camera-list-item .ant-tag {
+    min-width: 80px;
+    text-align: center;
+}
+
+.activity-timeline .ant-timeline-item-content {
+    font-size: 14px;
+}
+
+.device-list .ant-list-item {
+    border-bottom: 1px solid #f0f0f0;
+}

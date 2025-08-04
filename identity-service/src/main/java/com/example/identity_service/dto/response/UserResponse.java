@@ -18,9 +18,4 @@ public class UserResponse {
     String username;
     Role role;
     String avatar;
-
-    Instant createdAt;
-    Instant updatedAt;
-    String createdBy;
-    String updatedBy;
 }

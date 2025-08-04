@@ -1,4 +1,5 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { jwtDecode } from "jwt-decode";
 import cameraReducer from "./slices/cameraSlice";
 import chatReducer from "./slices/chatSlice";
 
@@ -15,7 +16,6 @@ const authSlice = createSlice({
     setAccessToken: (state, action) => {
       state.accessToken = action.payload.token;
       localStorage.setItem("accessToken", action.payload.token);
-      // userInfo và roles chỉ lưu trong Redux, không lưu localStorage
       state.userInfo = action.payload.userInfo || null;
       state.roles = action.payload.roles || null;
     },
@@ -27,9 +27,22 @@ const authSlice = createSlice({
     },
     hydrateToken: (state) => {
       state.accessToken = localStorage.getItem("accessToken") || null;
-      // Không hydrate userInfo/roles từ localStorage
-      state.userInfo = null;
-      state.roles = null;
+      if (state.accessToken) {
+        try {
+          const decoded = jwtDecode(state.accessToken);
+          state.userInfo = { userId: decoded.sub, email: decoded.email }; // Assuming 'sub' is userId
+          state.roles = decoded.roles || null;
+        } catch (e) {
+          console.error("Failed to decode token on hydrate:", e);
+          state.accessToken = null;
+          state.userInfo = null;
+          state.roles = null;
+          localStorage.removeItem("accessToken");
+        }
+      } else {
+        state.userInfo = null;
+        state.roles = null;
+      }
     },
   },
 });

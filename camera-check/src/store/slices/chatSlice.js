@@ -1,155 +1,187 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as chatService from "../../services/chatService";
 
-
-export const fetchChannels = createAsyncThunk(
-  "chat/fetchChannels",
-  async (userId) => {
-    const res = await chatService.getUserChannels(userId);
-    return res.data.data;
+// Async thunk to fetch the current user's conversations
+export const fetchConversations = createAsyncThunk(
+  "chat/fetchConversations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await chatService.getMyConversations();
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
-export const fetchDirectMessages = createAsyncThunk(
-  "chat/fetchDirectMessages",
-  async ({ user1, user2, page = 0, size = 30 }) => {
-    const res = await chatService.getDirectMessageHistory(user1, user2, page, size);
-    return res.data.data;
+export const fetchMessages = createAsyncThunk(
+  "chat/fetchMessages",
+  async ({ conversationId }, { rejectWithValue }) => {
+    try {
+      const res = await chatService.getMessagesByConversation(conversationId, 1);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
-export const fetchGroupMessages = createAsyncThunk(
-  "chat/fetchGroupMessages",
-  async ({ groupId, page = 0, size = 30 }) => {
-    const res = await chatService.getGroupMessageHistory(groupId, page, size);
-    return res.data.data;
+export const fetchMoreMessages = createAsyncThunk(
+  "chat/fetchMoreMessages",
+  async ({ conversationId, page }, { rejectWithValue }) => {
+    try {
+      const res = await chatService.getMessagesByConversation(conversationId, page);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
-export const sendDirectMessage = createAsyncThunk(
-  "chat/sendDirectMessage",
-  async ({ senderId, receiverId, content }) => {
-    const res = await chatService.sendDirectMessage(senderId, receiverId, content);
-    return res.data.data;
+// Async thunk to send a message
+export const sendMessage = createAsyncThunk(
+  "chat/sendMessage",
+  async ({ conversationId, message, type }, { rejectWithValue }) => {
+    try {
+      const res = await chatService.createMessage(conversationId, message, type);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
-export const sendGroupMessage = createAsyncThunk(
-  "chat/sendGroupMessage",
-  async ({ senderId, groupId, content }) => {
-    const res = await chatService.sendGroupMessage(senderId, groupId, content);
-    return res.data.data;
-  }
-);
-
+// Async thunk to create a new group conversation
 export const createGroup = createAsyncThunk(
   "chat/createGroup",
-  async ({ name, description, createdBy, members }) => {
-    const res = await chatService.createGroup(name, description, createdBy, members);
-    return res.data.data;
+  async ({ name, participantIds }, { rejectWithValue }) => {
+    try {
+      const res = await chatService.createConversation(name, participantIds, "GROUP");
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
 );
 
-export const addGroupMembers = createAsyncThunk(
-  "chat/addGroupMembers",
-  async ({ groupId, memberIds }) => {
-    const res = await chatService.addGroupMembers(groupId, memberIds);
-    return res.data.data;
-  }
-);
-
-export const fetchAllGroups = createAsyncThunk(
-  "chat/fetchAllGroups",
-  async () => {
-    const res = await chatService.getAllGroups();
-    return res.data.data;
-  }
-);
-
-// --- Slice ---
 const chatSlice = createSlice({
   name: "chat",
   initialState: {
-    channels: [],
-    messages: [],
-    selectedChannel: null, // id group hoặc id user
-    selectedType: null,    // 'group' | 'direct'
-    loading: false,
+    conversations: [],
+    messages: {
+      data: [],
+      currentPage: 1,
+      totalPages: 1,
+      loading: false,
+    },
+    activeConversationId: null,
+    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
-    allGroups: [],
   },
   reducers: {
-    setSelectedChannel: (state, action) => {
-      state.selectedChannel = action.payload.id;
-      state.selectedType = action.payload.type; // 'group' | 'direct'
-      state.messages = [];
+    setActiveConversation: (state, action) => {
+      state.activeConversationId = action.payload;
+      state.messages = { data: [], currentPage: 1, totalPages: 1, loading: false };
+      state.status = 'idle';
     },
-    clearMessages: (state) => {
-      state.messages = [];
+    addMessage: (state, action) => {
+      const newMessage = action.payload;
+
+      // --- Update Conversation List (for both sender and receiver) ---
+      const conversationIndex = state.conversations.findIndex(c => c.id === newMessage.conversationId);
+      if (conversationIndex !== -1) {
+        const conversation = state.conversations[conversationIndex];
+        conversation.lastMessage = {
+          content: newMessage.message,
+          timestamp: newMessage.createdDate,
+        };
+
+        // Increment unread count only for the receiver in an inactive chat
+        if (newMessage.conversationId !== state.activeConversationId && !newMessage.me) {
+          conversation.unreadCount = (conversation.unreadCount || 0) + 1;
+        }
+
+        // Move the updated conversation to the top of the list
+        const updatedConversation = state.conversations.splice(conversationIndex, 1)[0];
+        state.conversations.unshift(updatedConversation);
+      }
+
+      if (newMessage.conversationId === state.activeConversationId && !newMessage.me) {
+        if (!state.messages.data.find(msg => msg.id === newMessage.id)) {
+          state.messages.data.push(newMessage);
+        }
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      // --- CHANNELS ---
-      .addCase(fetchChannels.pending, (state) => {
-        state.loading = true;
+      .addCase(fetchConversations.pending, (state) => {
+        state.status = 'loading';
       })
-      .addCase(fetchChannels.fulfilled, (state, action) => {
-        state.loading = false;
-        state.channels = action.payload;
+      .addCase(fetchConversations.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.conversations = action.payload;
+        if (!state.activeConversationId && action.payload.length > 0) {
+          state.activeConversationId = action.payload[0].id;
+        }
       })
-      .addCase(fetchChannels.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-
-      // --- DIRECT MESSAGES ---
-      .addCase(fetchDirectMessages.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(fetchDirectMessages.fulfilled, (state, action) => {
-        state.loading = false;
-        state.messages = action.payload;
-      })
-      .addCase(fetchDirectMessages.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
+      .addCase(fetchConversations.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
       })
 
-      // --- GROUP MESSAGES ---
-      .addCase(fetchGroupMessages.pending, (state) => {
-        state.loading = true;
+      // --- FETCH MESSAGES --- //
+      .addCase(fetchMessages.pending, (state) => {
+        state.messages.loading = true;
       })
-      .addCase(fetchGroupMessages.fulfilled, (state, action) => {
-        state.loading = false;
-        state.messages = action.payload;
+      .addCase(fetchMessages.fulfilled, (state, action) => {
+        state.messages.loading = false;
+        state.messages.data = action.payload.data.reverse();
+        state.messages.currentPage = action.payload.currentPage;
+        state.messages.totalPages = action.payload.totalPages;
       })
-      .addCase(fetchGroupMessages.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-
-      // --- SEND MESSAGE (Realtime push) ---
-      .addCase(sendDirectMessage.fulfilled, (state, action) => {
-        state.messages.push(action.payload);
-      })
-      .addCase(sendGroupMessage.fulfilled, (state, action) => {
-        state.messages.push(action.payload);
+      .addCase(fetchMessages.rejected, (state, action) => {
+        state.messages.loading = false;
+        state.error = action.payload;
       })
 
-      // --- GROUPS ---
+      // --- FETCH MORE MESSAGES --- //
+      .addCase(fetchMoreMessages.pending, (state) => {
+        state.messages.loading = true;
+      })
+      .addCase(fetchMoreMessages.fulfilled, (state, action) => {
+        state.messages.loading = false;
+        state.messages.data = [...action.payload.data.reverse(), ...state.messages.data];
+        state.messages.currentPage = action.payload.currentPage;
+      })
+      .addCase(fetchMoreMessages.rejected, (state, action) => {
+        state.messages.loading = false;
+        state.error = action.payload;
+      })
+
+      // --- SEND MESSAGE --- //
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        const newMessage = action.payload;
+        state.messages.data.push(newMessage);
+        
+        const conversationIndex = state.conversations.findIndex(c => c.id === state.activeConversationId);
+        if (conversationIndex !== -1) {
+            const conversation = state.conversations[conversationIndex];
+            conversation.lastMessage = {
+                content: newMessage.message,
+                timestamp: newMessage.createdDate,
+            };
+            const updatedConversation = state.conversations.splice(conversationIndex, 1)[0];
+            state.conversations.unshift(updatedConversation);
+        }
+      })
+
       .addCase(createGroup.fulfilled, (state, action) => {
-        state.channels.push(action.payload);
-      })
-      .addCase(fetchAllGroups.fulfilled, (state, action) => {
-        state.allGroups = action.payload;
-      })
-      .addCase(addGroupMembers.fulfilled, (state, action) => {
-        // Optional: cập nhật thành viên nhóm nếu lưu trong state
+        state.conversations.unshift(action.payload);
+        state.activeConversationId = action.payload.id;
       });
   },
 });
 
-// --- Export actions + reducer ---
-export const { setSelectedChannel, clearMessages } = chatSlice.actions;
+export const { setActiveConversation, addMessage } = chatSlice.actions;
 export default chatSlice.reducer;

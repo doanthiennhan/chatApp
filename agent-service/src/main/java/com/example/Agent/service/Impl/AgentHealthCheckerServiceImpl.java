@@ -2,11 +2,11 @@ package com.example.Agent.service.Impl;
 
 import com.example.Agent.dto.CameraHealthReport;
 import com.example.Agent.dto.CameraToCheck;
+import com.example.Agent.enums.CameraStatus;
 import com.example.Agent.repository.httpClient.CameraServiceClient;
+import com.example.Agent.service.AgentHealthCheckerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class AgentHealthCheckerServiceImpl {
+public class AgentHealthCheckerServiceImpl implements AgentHealthCheckerService {
     private final CameraServiceClient cameraServiceClient;
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
@@ -28,7 +28,7 @@ public class AgentHealthCheckerServiceImpl {
         List<CompletableFuture<Void>> futures = cameras.stream()
                 .map(cam -> CompletableFuture.runAsync(() -> {
                     boolean streamOK = checkStream(cam.getRtspUrl());
-                    String status = streamOK ? "OK" : "STREAM_ERROR";
+                    String status = streamOK ? CameraStatus.ONLINE.toString() : CameraStatus.ERROR.toString();
                     reports.add(new CameraHealthReport(cam.getId(), status));
                 }, executor))
                 .toList();
@@ -38,13 +38,29 @@ public class AgentHealthCheckerServiceImpl {
         cameraServiceClient.reportCameraHealth(reports);
     }
 
+//    private boolean checkStream(String rtspUrl) {
+//        try {
+//            ProcessBuilder builder = new ProcessBuilder("ffmpeg", "-i", rtspUrl, "-t", "2", "-f", "null", "-");
+//            Process process = builder.start();
+//            if (process.waitFor(5, TimeUnit.SECONDS)) {
+//                return process.exitValue() == 0;
+//            } else {
+//                return false;
+//            }
+//
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
     private boolean checkStream(String rtspUrl) {
         try {
-            ProcessBuilder builder = new ProcessBuilder("ffmpeg", "-i", rtspUrl, "-t", "2", "-f", "null", "-");
+            ProcessBuilder builder = new ProcessBuilder("ffprobe", "-v", "error", "-show_entries",
+                    "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", rtspUrl);
             Process process = builder.start();
-            return process.waitFor(5, TimeUnit.SECONDS) == 0;
+            return process.waitFor(5, TimeUnit.SECONDS) && process.exitValue() == 0;
         } catch (Exception e) {
             return false;
         }
     }
+
 }

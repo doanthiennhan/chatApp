@@ -6,8 +6,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableFeignClients
 @EnableScheduling
+@EnableFeignClients(basePackages = "com.example.Agent.repository.httpClient")
 public class AgentApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AgentApplication.class, args);

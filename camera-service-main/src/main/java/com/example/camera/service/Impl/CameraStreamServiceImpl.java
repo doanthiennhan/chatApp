@@ -11,10 +11,7 @@ import com.example.camera.exception.ErrorCode;
 import com.example.camera.repository.CameraLogRepository;
 import com.example.camera.repository.CameraRepository;
 import com.example.camera.service.CameraStreamService;
-import com.example.camera.util.UrlUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CameraStreamServiceImpl implements CameraStreamService {
 
@@ -43,12 +39,15 @@ public class CameraStreamServiceImpl implements CameraStreamService {
     Map<String, CameraStreamState> streamStates = new ConcurrentHashMap<>();
     Map<String, SseEmitter> cameraEmitters = new ConcurrentHashMap<>();
 
-    CameraRepository cameraRepository;
-    CameraLogRepository cameraLogRepository;
-    UrlUtil urlUtil;
-    String baseUrl= "http://localhost:8082/camera";
+    private final CameraRepository cameraRepository;
+    private final CameraLogRepository cameraLogRepository;
+    private final String baseUrl;
 
-    HttpServletRequest request;
+    public CameraStreamServiceImpl(CameraRepository cameraRepository, CameraLogRepository cameraLogRepository, @Value("${app.base-url}") String baseUrl) {
+        this.cameraRepository = cameraRepository;
+        this.cameraLogRepository = cameraLogRepository;
+        this.baseUrl = baseUrl;
+    }
 
     public synchronized void startViewing(String cameraId) throws IOException {
         Camera camera = cameraRepository.findById(cameraId)
@@ -90,7 +89,7 @@ public class CameraStreamServiceImpl implements CameraStreamService {
             cameraEmitters.put(cameraId, emitter);
 
             logStatus(camera, CameraStatus.ONLINE, "Stream started");
-            notifyStatus(camera, "ONLINE", 1, emitter); // Gửi thông báo trạng thái và số người xem
+            notifyStatus(camera, "ONLINE", 1, emitter);
         } else {
             int count = state.getViewerCount().incrementAndGet();
             SseEmitter emitter = cameraEmitters.get(cameraId);
@@ -271,8 +270,8 @@ public class CameraStreamServiceImpl implements CameraStreamService {
             process.waitFor(5, TimeUnit.SECONDS);
 
         } catch (IOException | InterruptedException e) {
-            System.err.println("❌ Lỗi khi lưu ảnh cuối: " + e.getMessage());
+            System.err.println("Lỗi khi lưu ảnh cuối: " + e.getMessage());
         }
     }
-    }
+}
 

@@ -7,7 +7,7 @@ import {
 } from "../store";
 
 const identityApi = axios.create({
-  baseURL: "http://localhost:8080/identity/api",
+  baseURL: "http://localhost:8080/identity",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -121,14 +121,14 @@ identityApi.interceptors.response.use(
 
 // --- Auth API ---
 export const signin = async (email, password) => {
-  const res = await identityApi.post("/auth/signin", { email, password });
+  const res = await identityApi.post("/api/auth/signin", { email, password });
   const { accessToken } = res.data.data;
   setAccessToken(accessToken);
   return res.data;
 };
 
 export const signup = async (email, password) => {
-  const res = await identityApi.post("/auth/signup", { email, password });
+  const res = await identityApi.post("/api/auth/signup", { email, password });
   return res.data;
 };
 
@@ -136,5 +136,9 @@ export const logout = async () => {
   await identityApi.post("/auth/logout");
   removeAccessToken();
 };
+
+// --- User API ---
+export const searchUsers = (search = '', page = 1, size = 10) => 
+  identityApi.get(`/users?search=${search}&page=${page}&size=${size}`);
 
 export default identityApi;

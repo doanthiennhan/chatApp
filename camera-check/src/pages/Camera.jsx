@@ -1,14 +1,12 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import CameraCard from "../components/camera/CameraCard";
 import AlertItem from "../components/chat/AlertItem";
 import CameraModal from "../components/camera/CameraModal";
 import CreateCameraModal from "../components/camera/CreateCameraModal";
-import CameraPlayer from "../components/camera/CameraPlayer";
 import { Row, Col, Card, Spin, message, Button, Drawer, Descriptions, Layout, Menu, Avatar, Dropdown, Space } from "antd";
 import { PlusOutlined, UserOutlined, CameraOutlined, MessageOutlined, DownOutlined, HomeOutlined, ArrowLeftOutlined } from "@ant-design/icons";
-import { fetchCameras } from "../services/cameraService";
-import { useDispatch } from "react-redux";
-import { deleteCamera, updateCamera } from "../store/slices/cameraSlice";
+import { getCameras, setSelectedCameraId, clearSelectedCameraId, setEditingCameraId, clearEditingCameraId } from "../store/slices/cameraSlice";
 import useCameraHealthSSE from "../hooks/useCameraHealthSSE";
 import { useNavigate, useLocation } from "react-router-dom";
 import identityApi, { removeAccessToken } from "../services/identityService";
@@ -23,18 +21,21 @@ const menuItems = [
 ];
 
 const Camera = () => {
-  const [cameras, setCameras] = useState([]);
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCamera, setSelectedCamera] = useState(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
   const dispatch = useDispatch();
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingCamera, setEditingCamera] = useState(null);
+  const { list: cameras, status, selectedCameraId, editingCameraId } = useSelector(state => state.camera);
+  const selectedCamera = useSelector(state => 
+    Array.isArray(state.camera.list) ? state.camera.list.find(cam => cam.id === selectedCameraId) : undefined
+  );
+  const editingCamera = useSelector(state => 
+    Array.isArray(state.camera.list) ? state.camera.list.find(cam => cam.id === editingCameraId) : undefined
+  );
+
+  const [alerts, setAlerts] = useState([]);
+  const [createModalOpen, setCreateModalOpen] = useState(false); // Local state for create modal
   const [healthDrawerOpen, setHealthDrawerOpen] = useState(false);
   const [healthCamera, setHealthCamera] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [hideHeader, setHideHeader] = useState(false);
+  const [hideHeader, setHideHeader] = useState(0);
   const [lastScrollY, setLastScrollY] = useState(0);
   const healthInfo = useCameraHealthSSE(healthCamera?.id, healthDrawerOpen);
   const navigate = useNavigate();
@@ -54,64 +55,12 @@ const Camera = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const loadCameras = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchCameras();
-      const apiCameras = (res.data?.data || res.data || []).map((cam) => ({
-        id: cam.id,
-        name: cam.name,
-        status: cam.status,
-        imageQuality: cam.resolution ? "excellent" : "good",
-        lastUpdated: new Date(),
-        snapshotUrl: cam.snapshotUrl, 
-        hlsUrl: cam.hlsUrl,
-        location: cam.location,
-        type: cam.type,
-        vendor: cam.vendor,
-        rtspUrl: cam.rtspUrl,
-      }));
-      setCameras(apiCameras);
-    } catch (err) {
-      message.error("Không thể tải danh sách camera");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadCameras();
-  }, []);
+    dispatch(getCameras());
+  }, [dispatch]);
 
   const dismissAlert = (alertId) => {
     setAlerts(alerts.filter(alert => alert.id !== alertId));
-  };
-
-  const handleEdit = (camera) => {
-    setEditingCamera(camera);
-    setEditModalOpen(true);
-  };
-
-  const handleDelete = async (camera) => {
-    try {
-      await dispatch(deleteCamera(camera.id)).unwrap();
-      message.success("Đã xóa camera thành công");
-      loadCameras();
-    } catch (err) {
-      message.error("Xóa camera thất bại: " + (err?.message || err));
-    }
-  };
-
-  const handleUpdate = async (values) => {
-    try {
-      await dispatch(updateCamera({ ...editingCamera, ...values })).unwrap();
-      message.success("Cập nhật camera thành công");
-      setEditModalOpen(false);
-      setEditingCamera(null);
-      loadCameras();
-    } catch (err) {
-      message.error("Cập nhật camera thất bại: " + (err?.message || err));
-    }
   };
 
   const handleCheckHealth = (camera) => {
@@ -122,10 +71,6 @@ const Camera = () => {
   const handleCloseHealthDrawer = () => {
     setHealthDrawerOpen(false);
     setHealthCamera(null);
-  };
-
-  const handleCameraClick = (camera) => {
-    setSelectedCamera(camera);
   };
 
   const logoutHandler = async () => {
@@ -202,15 +147,9 @@ const Camera = () => {
               flex: 1,
               justifyContent: "center",
             }}
-            itemProps={{
-              style: {
-                borderRadius: 8,
-                transition: "background 0.2s",
-                margin: "0 4px"
-              }
-            }}
+            // Removed itemProps as it's not a valid prop for Menu
           />
-          <Dropdown overlay={userMenu} placement="bottomRight" trigger={["click"]}>
+          <Dropdown menu={{ items: userMenu.props.children }} placement="bottomRight" trigger={["click"]}>
             <Space style={{ cursor: "pointer" }}>
               <Avatar size={38} icon={<UserOutlined />} style={{ background: "#1677ff" }} />
               <DownOutlined style={{ fontSize: 14, color: "#888" }} />
@@ -253,21 +192,28 @@ const Camera = () => {
           </Row>
           <Row gutter={24}>
             <Col xs={24} lg={16}>
-              {loading ? (
+              {status === 'loading' ? (
                 <Spin size="large" style={{ width: "100%", margin: "40px 0" }} />
               ) : (
                 <Row gutter={[16, 16]}>
-                  {cameras.map(camera => (
-                    <Col xs={24} md={12} key={camera.id}>
-                      <CameraCard 
-                        camera={camera} 
-                        onClick={handleCameraClick} 
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onCheckHealth={handleCheckHealth}
-                      />
+                  {cameras.length > 0 ? (
+                    cameras.map(camera => (
+                      <Col xs={24} md={12} key={camera.id}>
+                        <CameraCard 
+                          camera={camera} 
+                          onCheckHealth={handleCheckHealth}
+                        />
+                      </Col>
+                    ))
+                  ) : (
+                    <Col span={24} style={{ textAlign: 'center', padding: '40px 0' }}>
+                      <div style={{ fontSize: 48, marginBottom: 16 }}>📹</div>
+                      <div style={{ fontSize: 18, marginBottom: 8 }}>Chưa có camera nào được thêm.</div>
+                      <div style={{ fontSize: 14, opacity: 0.7 }}>
+                        Click "Thêm Camera" để bắt đầu quản lý.
+                      </div>
                     </Col>
-                  ))}
+                  )}
                 </Row>
               )}
             </Col>
@@ -278,15 +224,15 @@ const Camera = () => {
                 ))}
               </Card>
               {/* Hiển thị thông báo khi chưa chọn camera */}
-              {!selectedCamera && (
+              {!selectedCameraId && (
                 <Card 
                   title="Camera Stream" 
                   style={{ marginTop: 16 }}
-                  bodyStyle={{ 
+                  styles={{ body: { 
                     textAlign: 'center', 
                     padding: '40px 20px',
                     color: '#666'
-                  }}
+                  } }}
                 >
                   <div style={{ fontSize: 48, marginBottom: 16 }}>📹</div>
                   <div style={{ fontSize: 16, marginBottom: 8 }}>Chưa chọn camera</div>
@@ -296,15 +242,15 @@ const Camera = () => {
                 </Card>
               )}
               {/* Hiển thị thông tin camera đã chọn */}
-              {selectedCamera && (
+              {selectedCameraId && selectedCamera && (
                 <Card 
                   title={`Camera: ${selectedCamera.name}`}
                   style={{ marginTop: 16 }}
-                  bodyStyle={{ 
+                  styles={{ body: { 
                     textAlign: 'center', 
                     padding: '20px',
                     color: '#666'
-                  }}
+                  } }}
                 >
                   <div style={{ fontSize: 48, marginBottom: 16 }}>📹</div>
                   <div style={{ fontSize: 16, marginBottom: 8 }}>Camera đã chọn</div>
@@ -318,26 +264,17 @@ const Camera = () => {
               )}
             </Col>
           </Row>
-          {selectedCamera && (
-            <CameraModal
-              camera={selectedCamera}
-              visible={!!selectedCamera}
-              onClose={() => setSelectedCamera(null)}
+          <CameraModal />
+          {createModalOpen && (
+            <CreateCameraModal 
+              visible={createModalOpen}
+              onClose={() => setCreateModalOpen(false)}
             />
           )}
-          <CreateCameraModal
-            visible={createModalOpen}
-            onClose={() => setCreateModalOpen(false)}
-            onSuccess={loadCameras}
-          />
-          {editingCamera && (
-            <CreateCameraModal
-              visible={editModalOpen}
-              onClose={() => { setEditModalOpen(false); setEditingCamera(null); }}
-              onSuccess={loadCameras}
-              initialValues={editingCamera}
-              onFinish={handleUpdate}
-              isEdit
+          {editingCameraId && editingCamera && (
+            <CreateCameraModal 
+              visible={!!editingCameraId}
+              onClose={() => dispatch(clearEditingCameraId())}
             />
           )}
           <Drawer
@@ -369,4 +306,5 @@ const Camera = () => {
   );
 };
 
-export default Camera; 
+export default Camera;
+
