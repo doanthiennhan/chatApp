@@ -19,14 +19,14 @@ public class HealthCheckCameraController {
     HealthCheckService healthCheckService;
 
     @PostMapping("/{id}")
-    public ApiResponse<CameraHealthResponse> healthChecker(@PathVariable("id") String id){
+    public ApiResponse<CameraHealthResponse> healthChecker(@PathVariable("id") String id) {
         return ApiResponse.<CameraHealthResponse>builder()
                 .data(healthCheckService.checkCamera(id))
                 .build();
     }
 
     @PostMapping
-    public  void healthChecks(@RequestBody List<CameraHealthReport> reports){
+    public void healthChecks(@RequestBody List<CameraHealthReport> reports) {
         healthCheckService.updateStatusCamera(reports);
     }
 }

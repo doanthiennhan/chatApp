@@ -1,14 +1,8 @@
 package com.example.camera.dto;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import lombok.*;
-
-import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Data

@@ -38,7 +38,7 @@ public class Camera {
     String rtspUrl;
 
     String hlsUrl;
-    
+
     String snapshotUrl;
 
     String location;

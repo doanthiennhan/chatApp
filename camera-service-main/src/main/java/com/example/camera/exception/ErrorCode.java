@@ -21,13 +21,12 @@ public enum ErrorCode {
     CAMERA_STREAM_FAILED(1102, "Failed to pull stream from camera", HttpStatus.BAD_REQUEST),
     ;
 
+    private final int code;
+    private final String message;
+    private final HttpStatusCode statusCode;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
         this.statusCode = statusCode;
     }
-
-    private final int code;
-    private final String message;
-    private final HttpStatusCode statusCode;
 }
