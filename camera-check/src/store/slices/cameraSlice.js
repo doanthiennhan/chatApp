@@ -59,15 +59,70 @@ const cameraSlice = createSlice({
     list: [],
     status: 'idle',
     error: null,
-    selectedCameraId: null,
+    activeStreamIds: [], 
     editingCameraId: null,
+    healthStatus: {}, 
+    displayedCameraIds: JSON.parse(localStorage.getItem('displayedCameraIds')) || [],
+    // Thêm state để lưu trạng thái real-time từ WebSocket
+    realTimeStatus: {},
   },
   reducers: {
-    setSelectedCameraId: (state, action) => {
-      state.selectedCameraId = action.payload;
+    startStreaming: (state, action) => {
+      if (!state.activeStreamIds.includes(action.payload)) {
+        state.activeStreamIds.push(action.payload);
+      }
     },
-    clearSelectedCameraId: (state) => {
-      state.selectedCameraId = null;
+    stopStreaming: (state, action) => {
+      state.activeStreamIds = state.activeStreamIds.filter(
+        id => id !== action.payload
+      );
+    },
+    updateCameraHealth: (state, action) => {
+      const { cameraId, healthData } = action.payload;
+      state.healthStatus[cameraId] = healthData;
+    },
+    // Action mới để cập nhật trạng thái camera từ WebSocket
+    updateCameraStatus: (state, action) => {
+      const { cameraId, status, viewerCount, name, location, resolution, vendor } = action.payload;
+      
+      // Cập nhật realTimeStatus
+      state.realTimeStatus[cameraId] = {
+        status,
+        viewerCount,
+        lastUpdated: new Date().toISOString()
+      };
+
+      // Cập nhật camera trong list nếu có
+      const cameraIndex = state.list.findIndex(cam => cam.id === cameraId);
+      if (cameraIndex !== -1) {
+        state.list[cameraIndex] = {
+          ...state.list[cameraIndex],
+          status,
+          viewerCount,
+          name: name || state.list[cameraIndex].name,
+          location: location || state.list[cameraIndex].location,
+          resolution: resolution || state.list[cameraIndex].resolution,
+          vendor: vendor || state.list[cameraIndex].vendor,
+          lastUpdated: new Date().toISOString()
+        };
+      }
+    },
+    // Reducers mới để quản lý danh sách camera hiển thị
+    addDisplayedCamera: (state, action) => {
+      if (!state.displayedCameraIds.includes(action.payload)) {
+        state.displayedCameraIds.push(action.payload);
+        localStorage.setItem('displayedCameraIds', JSON.stringify(state.displayedCameraIds));
+      }
+    },
+    removeDisplayedCamera: (state, action) => {
+      state.displayedCameraIds = state.displayedCameraIds.filter(
+        id => id !== action.payload
+      );
+      localStorage.setItem('displayedCameraIds', JSON.stringify(state.displayedCameraIds));
+    },
+    setDisplayedCameras: (state, action) => {
+      state.displayedCameraIds = action.payload;
+      localStorage.setItem('displayedCameraIds', JSON.stringify(state.displayedCameraIds));
     },
     setEditingCameraId: (state, action) => {
       state.editingCameraId = action.payload;
@@ -112,6 +167,16 @@ const cameraSlice = createSlice({
   },
 });
 
-export const { setSelectedCameraId, clearSelectedCameraId, setEditingCameraId, clearEditingCameraId } = cameraSlice.actions;
+export const { 
+  startStreaming,
+  stopStreaming,
+  updateCameraHealth,
+  updateCameraStatus,
+  addDisplayedCamera,
+  removeDisplayedCamera,
+  setDisplayedCameras,
+  setEditingCameraId, 
+  clearEditingCameraId 
+} = cameraSlice.actions;
 
 export default cameraSlice.reducer;

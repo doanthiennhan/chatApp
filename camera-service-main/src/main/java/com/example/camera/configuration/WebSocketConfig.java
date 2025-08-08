@@ -1,11 +1,14 @@
 package com.example.camera.configuration;
 
 import com.example.camera.metadata.MetadataWebSocketHandler;
+import com.example.camera.status.StatusUpdateWebSocketHandler;
 import com.example.camera.streaming.StreamWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 @Configuration
@@ -14,6 +17,8 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 public class WebSocketConfig implements WebSocketConfigurer {
     private final StreamWebSocketHandler streamHandler;
     private final MetadataWebSocketHandler metadataHandler;
+    private final StatusUpdateWebSocketHandler statusUpdateWebSocketHandler;
+
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -21,10 +26,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOriginPatterns("*");
         registry.addHandler(metadataHandler, "/metadata")
                 .setAllowedOriginPatterns("*");
+        registry.addHandler(statusUpdateWebSocketHandler, "/status")
+                .setAllowedOriginPatterns("*");
 //                .withSockJS();
     }
 
-        
+
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();

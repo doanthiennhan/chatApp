@@ -21,7 +21,7 @@ public class CameraHealthChecker {
     private final CameraRepository cameraRepository;
     private final AgentServiceClient agentServiceClient;
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 10000)
     public void checkAllCamerasViaApi() {
         log.info("Gửi yêu cầu kiểm tra health camera lúc {}", Instant.now());
 

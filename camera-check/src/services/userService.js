@@ -54,5 +54,3 @@ export const changePassword = async (currentPassword, newPassword) => {
     const res = await userApi.post('/change-password', { currentPassword, newPassword });
     return res.data.data;
 }
-
-

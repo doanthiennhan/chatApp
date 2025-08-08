@@ -1,0 +1,100 @@
+/* src/styles/CameraGrid.css */
+
+.camera-grid {
+  display: grid;
+  gap: 16px;
+}
+
+/* Responsive grid columns */
+.camera-grid.cols-1 { grid-template-columns: repeat(1, 1fr); }
+.camera-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.camera-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.camera-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.camera-grid-item-card {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+}
+
+.camera-grid-item-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.camera-video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio (9 / 16 * 100%) */
+  background-color: #000;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.camera-video-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px 8px 0 0;
+}
+
+.camera-video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  color: white;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.6) 100%);
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.3s ease;
+}
+
+.camera-video-container:hover .camera-video-overlay {
+  opacity: 1; /* Show on hover */
+}
+
+.camera-overlay-top-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.camera-overlay-bottom-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 12px;
+}
+
+.camera-overlay-button {
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: white;
+}
+
+.camera-overlay-button:hover {
+  background: rgba(0,0,0,0.7);
+  color: white;
+}
+
+.camera-stopped-message {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-direction: column;
+  background-color: rgba(0,0,0,0.8);
+  font-size: 16px;
+}

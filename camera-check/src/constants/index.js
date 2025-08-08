@@ -1,4 +1,4 @@
-// API Endpoints
+/* // API Endpoints
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 // Camera Types
@@ -45,4 +45,4 @@ export const WS_EVENTS = {
   CAMERA_HEALTH: 'camera_health',
   CHAT_MESSAGE: 'chat_message',
   STREAM_UPDATE: 'stream_update'
-}; 
+}; */

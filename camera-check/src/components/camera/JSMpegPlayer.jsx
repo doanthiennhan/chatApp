@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+/* import React, { useRef } from 'react';
 import { Card } from 'antd';
 import { useJSMpegStream } from './jsmpeg';
 import JSMpegHeader from './jsmpeg/JSMpegHeader';
@@ -11,10 +11,8 @@ import JSMpegMetadata from './jsmpeg/JSMpegMetadata';
 const JSMpegPlayer = ({ camera, selectedCamera, isInModal = false, visible = true }) => {
   const canvasRef = useRef(null);
 
-  // Use selectedCamera if provided, otherwise use camera prop
   const currentCamera = selectedCamera || camera;
 
-  // Use custom hook for stream logic
   const {
     isStreaming,
     loading,
@@ -77,4 +75,4 @@ const JSMpegPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
   );
 };
 
-export default JSMpegPlayer;
+export default JSMpegPlayer; */

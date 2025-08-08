@@ -1,13 +1,11 @@
 import React from 'react';
-import CameraPlayer from './CameraPlayer';
-import JSMpegPlayer from './JSMpegPlayer';
 import SpringBootStreamPlayer from './SpringBootStreamPlayer';
 
-const StreamPlayer = ({ 
-  camera, 
-  selectedCamera, 
-  isInModal = false, 
-  visible = true, 
+const StreamPlayer = ({
+  camera,
+  selectedCamera,
+  isInModal = false,
+  visible = true,
   playerType = 'springboot' // 'springboot', 'jsmpeg', 'camera'
 }) => {
   switch (playerType) {
@@ -20,26 +18,29 @@ const StreamPlayer = ({
           visible={visible}
         />
       );
-    case 'jsmpeg':
-      return (
-        <JSMpegPlayer
-          camera={camera}
-          selectedCamera={selectedCamera}
-          isInModal={isInModal}
-          visible={visible}
-        />
-      );
-    case 'camera':
+    // Các loại player khác (JSMpeg, WebRTC) có thể được thêm vào đây nếu cần
+    // case 'jsmpeg':
+    //   return (
+    //     <JSMpegPlayer
+    //       camera={camera}
+    //       selectedCamera={selectedCamera}
+    //       isInModal={isInModal}
+    //       visible={visible}
+    //     />
+    //   );
+    // case 'camera':
+    // default:
+    //   return (
+    //     <CameraPlayer
+    //       camera={camera}
+    //       selectedCamera={selectedCamera}
+    //       isInModal={isInModal}
+    //       visible={visible}
+    //     />
+    //   );
     default:
-      return (
-        <CameraPlayer
-          camera={camera}
-          selectedCamera={selectedCamera}
-          isInModal={isInModal}
-          visible={visible}
-        />
-      );
+      return <div>Chọn loại player không hợp lệ.</div>;
   }
 };
 
-export default StreamPlayer; 
+export default StreamPlayer;

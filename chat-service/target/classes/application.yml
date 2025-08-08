@@ -1,10 +1,11 @@
 spring:
-  application:
-    name: chat-service
   datasource:
-    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
-    username: postgres.oouxjqqbbtmuvianrhje
-    password: Nhan2792003@@
+#    url: jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+#    username: postgres.oouxjqqbbtmuvianrhje
+#    password: Nhan2792003@@
+    url: jdbc:postgresql://localhost:5432/fpt
+    username: postgres
+    password: Nhan2792003
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -12,9 +13,21 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+#  flyway:
+#    enabled: false
+#    locations: classpath:db/migration
+#    baseline-on-migrate: true
+#    validate-on-migrate: true
+#    out-of-order: false
+#    clean-disabled: true
 
 server:
   port: 8081
   servlet:
-    context-path: /chat
+    context-path: /chat/api
+
+app:
+  services:
+    identity:
+      url: http://localhost:8080/identity

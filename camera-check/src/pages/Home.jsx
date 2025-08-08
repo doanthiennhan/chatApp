@@ -20,6 +20,7 @@ import identityApi, { removeAccessToken } from '../services/identityService';
 import { message } from 'antd';
 import AppFooter from '../components/layout/AppFooter'; // Import AppFooter
 import '../styles/Home.css'; // Import file CSS mới
+import { useAllCameraRealTimeStatus } from '../hooks/useCameraRealTimeStatus';
 
 const { Header, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -39,6 +40,9 @@ const Home = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Sử dụng hook để lấy real-time status của tất cả camera
+  const allCameraRealTimeStatus = useAllCameraRealTimeStatus();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -123,7 +127,10 @@ const Home = () => {
     }
   };
 
-  const onlineCameras = cameras.filter(cam => cam.status === 'ONLINE').length;
+  // Tính toán số camera online dựa trên real-time status
+  const onlineCameras = cameras.filter(cam => 
+    allCameraRealTimeStatus[cam.id]?.status === 'ONLINE' || cam.status === 'ONLINE'
+  ).length;
   const totalCameras = cameras.length;
   const onlinePercentage = totalCameras > 0 ? (onlineCameras / totalCameras) * 100 : 0;
 
@@ -319,8 +326,8 @@ const Home = () => {
               renderItem={(camera) => (
                 <List.Item
                   actions={[
-                    <Tag color={getStatusColor(camera.status)} style={{minWidth: 100, textAlign: 'center'}}>
-                      {getStatusText(camera.status)}
+                    <Tag color={getStatusColor(allCameraRealTimeStatus[camera.id]?.status || camera.status)} style={{minWidth: 100, textAlign: 'center'}}>
+                      {getStatusText(allCameraRealTimeStatus[camera.id]?.status || camera.status)}
                     </Tag>,
                     <Button type="text" icon={<SettingOutlined />} onClick={() => navigate(`/camera?id=${camera.id}`)}>Chi tiết</Button>
                   ]}

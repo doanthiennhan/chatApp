@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, message, Badge, Descriptions, Spin } from 'antd';
 import { PlayCircleOutlined, StopOutlined, EyeOutlined, WifiOutlined } from '@ant-design/icons';
 import { startStream, stopStream } from '../../services/cameraService';
@@ -559,4 +559,5 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
   );
 };
 
-export default CameraPlayer; 
+export default CameraPlayer;
+*/

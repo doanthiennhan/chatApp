@@ -49,4 +49,4 @@ export const createSafeJSMpegPlayer = (url, canvas, options = {}) => {
     console.error('🔧 Failed to create JSMpeg player:', error);
     return null;
   }
-}; 
+};

@@ -25,5 +25,5 @@ public class PageResponse<T> {
     long totalElements;
 
     @Builder.Default
-    private List<T> data = Collections.emptyList();
+    List<T> data = Collections.emptyList();
 }

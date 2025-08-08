@@ -1,4 +1,3 @@
-// Canvas utility functions
 
 export const testCanvasRef = (canvasRef) => {
   if (!canvasRef || !canvasRef.current) {
@@ -70,4 +69,4 @@ export const clearCanvas = (canvas) => {
   } catch (error) {
     console.error('🔧 Failed to clear canvas:', error);
   }
-}; 
+};

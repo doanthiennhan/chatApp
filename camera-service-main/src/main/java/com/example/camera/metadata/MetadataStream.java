@@ -39,13 +39,11 @@ public class MetadataStream {
 
             while (running.get()) {
                 try {
-                    Thread.sleep(3000); // mỗi giây gửi một lần
+                    Thread.sleep(3000);
                     long uptime = (System.currentTimeMillis() - startTime) / 1000;
 
-                    // Gọi ffprobe để lấy metadata từ RTSP stream
                     String metadata = extractMetadata(uptime);
 
-                    // Gửi cho các client
                     if (metadata != null) {
                         broadcastMetadata(metadata);
                     }
@@ -62,7 +60,7 @@ public class MetadataStream {
         metadataThread.start();
 
         status = "RUNNING";
-        log.info("📡 Started metadata stream for camera {}", cameraId);
+        log.info("Started metadata stream for camera {}", cameraId);
     }
 
     public synchronized void stop() {
@@ -75,7 +73,7 @@ public class MetadataStream {
         }
 
         status = "STOPPED";
-        log.info("🛑 Stopped metadata stream for camera {}", cameraId);
+        log.info("Stopped metadata stream for camera {}", cameraId);
     }
 
     public void addClient(MetadataWebSocketHandler.ClientSession client) {
@@ -144,7 +142,8 @@ public class MetadataStream {
                     width + "x" + height,
                     bitrate,
                     uptime,
-                    "running"
+                    "ONLINE",
+                    getClientCount()
             );
 
             return objectMapper.writeValueAsString(metadata);

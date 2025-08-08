@@ -34,7 +34,7 @@ const CreateCameraModal = ({ visible, onClose }) => {
         form.setFieldsValue(cameraToEdit);
       } else {
         form.resetFields();
-        form.setFieldsValue({ status: "ONLINE", type: "IP" }); // Set default values for new camera
+        form.setFieldsValue({ status: "ONLINE", type: "IP" });
       }
     }
   }, [visible, isEdit, cameraToEdit, form]);

@@ -140,4 +140,11 @@ public class StreamWebSocketHandler extends BinaryWebSocketHandler {
         }
     }
 
+    public int getViewerCount(String cameraId) {
+        CameraStream stream = activeStreams.get(cameraId);
+        if (stream != null) {
+            return stream.getClientCount();
+        }
+        return 0;
+    }
 }

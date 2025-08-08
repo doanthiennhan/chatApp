@@ -4,7 +4,6 @@ import { SendOutlined, PaperClipOutlined, SmileOutlined, AudioOutlined } from '@
 import { useDispatch } from 'react-redux';
 import { sendMessage } from '../../store/slices/chatSlice';
 
-// A placeholder for an emoji picker component
 const EmojiPicker = ({ onSelect }) => (
     <div style={{ width: 280, height: 200, overflowY: 'auto' }}>
         {/* Replace with a real emoji picker library */}

@@ -1,4 +1,4 @@
-// JSMpeg utility functions
+/* // JSMpeg utility functions
 
 export const checkJSMpegAvailability = () => {
   return typeof window !== 'undefined' && window.JSMpeg && window.JSMpeg.Player;
@@ -91,4 +91,4 @@ export const waitForJSMpeg = (timeout = 10000) => {
     
     checkJSMpeg();
   });
-}; 
+}; */

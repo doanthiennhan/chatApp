@@ -1,4 +1,4 @@
-import { Layout, App } from "antd";
+/* import { Layout, App } from "antd";
 
 const { Header, Content } = Layout;
 
@@ -37,4 +37,4 @@ const MainLayout = ({ title = "Camera Health Check", children }) => (
   </App>
 );
 
-export default MainLayout;
+export default MainLayout; */

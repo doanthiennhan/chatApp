@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+/* import { useEffect, useRef, useState } from "react";
 import SockJS from 'sockjs-client';
 
 export default function useCameraHealthSSE(cameraId, enabled) {
@@ -44,4 +44,4 @@ export default function useCameraHealthSSE(cameraId, enabled) {
   }, [cameraId, enabled]);
 
   return health;
-} 
+} */

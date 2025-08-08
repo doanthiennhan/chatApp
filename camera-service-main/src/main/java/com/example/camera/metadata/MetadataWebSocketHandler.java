@@ -78,10 +78,10 @@ public class    MetadataWebSocketHandler extends TextWebSocketHandler {
             metadataStream.addClient(client);
             session.getAttributes().put("cameraId", cameraId);
 
-            log.info("✅ Metadata client connected to camera {}. Total: {}", cameraId, metadataStream.getClientCount());
+            log.info("Metadata client connected to camera {}. Total: {}", cameraId, metadataStream.getClientCount());
 
         } catch (Exception e) {
-            log.error("❌ Error establishing metadata connection: {}", e.getMessage());
+            log.error("Error establishing metadata connection: {}", e.getMessage());
             try {
                 session.close(CloseStatus.SERVER_ERROR);
             } catch (Exception ex) {

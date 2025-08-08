@@ -65,14 +65,17 @@ export const parseStreamMetadata = (data) => {
     const metadata = JSON.parse(data);
     
     // Validate metadata structure
-    if (metadata.cameraId && metadata.fps && metadata.resolution && metadata.bitrate_kbps && metadata.timestamp) {
+    if (metadata.cameraId && metadata.fps && metadata.resolution && metadata.bitrate && metadata.uptime) {
       return {
         cameraId: metadata.cameraId,
         fps: metadata.fps,
         resolution: metadata.resolution,
-        bitrate_kbps: metadata.bitrate_kbps,
-        timestamp: metadata.timestamp,
-        formattedTime: new Date(metadata.timestamp).toLocaleString('vi-VN')
+        bitrate: parseFloat(metadata.bitrate) || 0,
+        timestamp: metadata.timestamp, // This might be undefined if not present in metadata
+        formattedTime: metadata.timestamp ? new Date(metadata.timestamp).toLocaleString('vi-VN') : 'N/A',
+        viewerCount: metadata.viewerCount,
+        uptime: metadata.uptime,
+        status: metadata.status 
       };
     }
     return null;

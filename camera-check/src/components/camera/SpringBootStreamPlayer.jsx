@@ -19,6 +19,7 @@ import styled from "styled-components";
 import { getWebSocketUrl, getMetadataWebSocketUrl, createWebSocketConnection, parseStreamMetadata } from '../../utils/websocket';
 import { testCanvasRef, waitForCanvasRef } from '../../utils/canvasTest';
 import { getJSMpegOptions } from '../../utils/webglCheck';
+import { useCameraRealTimeStatus } from '../../hooks/useCameraRealTimeStatus';
 
 // Styled components for enhanced UI
 const StreamContainer = styled.div`
@@ -99,7 +100,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
   const [loadSpeed, setLoadSpeed] = useState(0);
   const [videoQuality, setVideoQuality] = useState('Unknown');
   const [cameraLocation, setCameraLocation] = useState('');
-  const [realTimeStatus, setRealTimeStatus] = useState({
+  const [localRealTimeStatus, setLocalRealTimeStatus] = useState({
     isOnline: false,
     lastSeen: null,
     uptime: 0,
@@ -107,6 +108,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     latency: 0
   });
   
+  const realTimeStatus = useCameraRealTimeStatus(selectedCamera?.id || camera?.id);
   const canvasRef = useRef(null);
   const playerRef = useRef(null);
   const timeoutRef = useRef(null);
@@ -116,7 +118,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
 
   const currentCamera = selectedCamera || camera;
 
-  // Set camera location from camera data
   useEffect(() => {
     if (currentCamera) {
       setCameraLocation(currentCamera.location || currentCamera.name || 'Unknown Location');
@@ -130,7 +131,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
   }, [canvasRef.current]);
 
   useEffect(() => {
-    // Cleanup chỉ khi component unmount
     return () => {
       console.log('🔧 Cleaning up SpringBootStreamPlayer component');
       if (playerRef.current) {
@@ -142,15 +142,18 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       if (metricsRef.current) {
         clearInterval(metricsRef.current);
       }
-      if (metadataWebSocketRef.current) {
-        metadataWebSocketRef.current.close();
+      if (metadataWebSocketRef.current && metadataWebSocketRef.current.readyState !== WebSocket.CLOSED) {
+        try {
+          metadataWebSocketRef.current.close();
+        } catch (error) {
+          console.warn('Error closing metadata WebSocket in cleanup:', error);
+        }
         metadataWebSocketRef.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
-    // Cleanup khi modal đóng
     if (isInModal && !visible) {
       console.log('🔧 Modal closed, cleaning up SpringBootStreamPlayer');
       if (playerRef.current) {
@@ -162,14 +165,17 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       if (metricsRef.current) {
         clearInterval(metricsRef.current);
       }
-      if (metadataWebSocketRef.current) {
-        metadataWebSocketRef.current.close();
+      if (metadataWebSocketRef.current && metadataWebSocketRef.current.readyState !== WebSocket.CLOSED) {
+        try {
+          metadataWebSocketRef.current.close();
+        } catch (error) {
+          console.warn('Error closing metadata WebSocket in modal cleanup:', error);
+        }
         metadataWebSocketRef.current = null;
       }
     }
   }, [isInModal, visible]);
 
-  // Zoom controls
   const handleZoomIn = () => {
     setZoomLevel(prev => Math.min(prev + 0.25, 3));
   };
@@ -182,7 +188,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     setZoomLevel(1);
   };
 
-  // Fullscreen controls
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
       streamContainerRef.current?.requestFullscreen();
@@ -193,7 +198,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     }
   };
 
-  // Listen for fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -205,7 +209,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     };
   }, []);
 
-  // --- BỔ SUNG: Nhận metadata realtime qua WebSocket ---
   const startMetadataStream = () => {
     if (!currentCamera?.id) return;
     const metadataUrl = getMetadataWebSocketUrl(currentCamera.id);
@@ -217,7 +220,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     metadataWebSocketRef.current = createWebSocketConnection(
       metadataUrl,
       (event) => {
-        // Giả sử event.data là JSON string như ví dụ bạn gửi
         let parsed;
         try {
           parsed = JSON.parse(event.data);
@@ -227,7 +229,6 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
         if (parsed) {
           setFps(Number(parsed.fps) || 0);
 
-          // Kiểm tra bitrate hợp lệ
           const bitrate = Number(parsed.bitrate);
           setLoadSpeed(isNaN(bitrate) ? 0 : bitrate);
 
@@ -245,27 +246,31 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
               : 'Unknown'
           );
 
-          setRealTimeStatus(prev => ({
+          setLocalRealTimeStatus(prev => ({
             ...prev,
             uptime: Number(parsed.uptime) || 0,
-            isOnline: parsed.status === 'running',
+            isOnline: parsed.status === 'ONLINE',
             lastSeen: new Date().toISOString()
           }));
+          setViewerCount(Number(parsed.viewerCount) || 0);
         }
       },
-      () => console.log('📡 Metadata connected'),
-      () => console.log('📡 Metadata disconnected'),
-      (err) => console.error('📡 Metadata error:', err)
+      () => console.log(' Metadata connected'),
+      () => console.log(' Metadata disconnected'),
+      (err) => console.error(' Metadata error:', err)
     );
   };
 
   const stopMetadataStream = () => {
-    if (metadataWebSocketRef.current) {
-      metadataWebSocketRef.current.close();
+    if (metadataWebSocketRef.current && metadataWebSocketRef.current.readyState !== WebSocket.CLOSED) {
+      try {
+        metadataWebSocketRef.current.close();
+      } catch (error) {
+        console.warn('Error closing metadata WebSocket:', error);
+      }
       metadataWebSocketRef.current = null;
     }
   };
-  // --- HẾT BỔ SUNG ---
 
   const handleStartStream = async () => {
     if (!currentCamera) {
@@ -285,10 +290,9 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
         throw new Error('Canvas not available');
       }
 
-      // Create JSMpeg player using safe options
       const playerOptions = getJSMpegOptions(canvas, wsUrl, {
         autoplay: true,
-        audio: true, // MP2 audio from BE
+        audio: true,
         loop: false,
         videoBufferSize: 2 * 1024 * 1024, // 2MB buffer for smoother playback
         preserveDrawingBuffer: false,
@@ -322,7 +326,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
         player = new JSMpeg.Player(wsUrl, playerOptions);
       } catch (error) {
         console.error('🔧 Failed to create JSMpeg player with WebGL disabled, trying with basic options:', error);
-        // Fallback to basic options
+
         const basicOptions = {
           canvas: canvas,
           autoplay: true,
@@ -368,7 +372,11 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
   const handleStopStream = () => {
     console.log('🔧 Stopping SpringBoot stream');
     if (playerRef.current) {
-      playerRef.current.destroy();
+      try {
+        playerRef.current.destroy();
+      } catch (error) {
+        console.warn('Error destroying player:', error);
+      }
       playerRef.current = null;
     }
     setIsStreaming(false);
@@ -377,7 +385,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     setFps(0);
     setLoadSpeed(0);
     setVideoQuality('Unknown');
-    setRealTimeStatus({
+    setLocalRealTimeStatus({
       isOnline: false,
       lastSeen: null,
       uptime: 0,
@@ -550,7 +558,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
             <div>Bitrate: {loadSpeed} kbps</div>
             <div>Resolution: {streamInfo?.resolution}</div>
             <div>Quality: <Tag color={getQualityColor(videoQuality)}>{videoQuality}</Tag></div>
-            <div>Uptime: {realTimeStatus.uptime}s</div>
+            <div>Uptime: {localRealTimeStatus.uptime}s</div>
             <div>Status: <Tag color={realTimeStatus.isOnline ? 'green' : 'red'}>
               {realTimeStatus.isOnline ? 'Running' : 'Offline'}
             </Tag></div>
@@ -567,7 +575,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
           <Descriptions.Item label="Bitrate">{loadSpeed} kbps</Descriptions.Item>
           <Descriptions.Item label="Trạng thái">
             <Tag color={realTimeStatus.isOnline ? 'green' : 'red'}>
-              {realTimeStatus.isOnline ? 'Running' : 'Offline'}
+              {realTimeStatus.isOnline ? 'ONLINE' : 'OFFLINE'}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Chất lượng">
@@ -575,7 +583,12 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
           </Descriptions.Item>
           <Descriptions.Item label="FPS hiện tại">{fps}</Descriptions.Item>
           <Descriptions.Item label="Tốc độ load">{loadSpeed} kbps</Descriptions.Item>
-          <Descriptions.Item label="Thời gian hoạt động">{realTimeStatus.uptime}s</Descriptions.Item>
+          <Descriptions.Item label="Thời gian hoạt động">{localRealTimeStatus.uptime}s</Descriptions.Item>
+          <Descriptions.Item label="Số người xem hiện tại">
+            <Badge count={viewerCount} overflowCount={999} showZero>
+              <EyeOutlined />
+            </Badge>
+          </Descriptions.Item>
         </Descriptions>
       )}
     </Card>

@@ -25,7 +25,7 @@ public class CameraStream {
     Process ffmpegProcess;
     final Set<StreamWebSocketHandler.ClientSession> clients = ConcurrentHashMap.newKeySet();
     final AtomicBoolean running = new AtomicBoolean(false);
-    final AtomicLong totalBytesSent = new AtomicLong(0); // NEW
+    final AtomicLong totalBytesSent = new AtomicLong(0);
     Thread outputThread;
     CameraRepository cameraRepository;
     CameraStreamService cameraStreamService;
@@ -61,8 +61,7 @@ public class CameraStream {
                             byte[] data = new byte[bytesRead];
                             System.arraycopy(buffer, 0, data, 0, bytesRead);
 
-                            // Tính tổng byte gửi ra
-                            totalBytesSent.addAndGet(bytesRead); // ✅ UPDATE
+                            totalBytesSent.addAndGet(bytesRead);
 
                             frameCount[0]++;
                             broadcast(data);
@@ -114,7 +113,7 @@ public class CameraStream {
                 "-r", "30",
                 "-" // pipe output
         };
-        log.info("🔧 FFmpeg command: {}", String.join(" ", command));
+        log.info("FFmpeg command: {}", String.join(" ", command));
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.redirectErrorStream(true);
         return pb;

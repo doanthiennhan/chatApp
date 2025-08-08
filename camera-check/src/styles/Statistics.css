@@ -1,0 +1,441 @@
+
+/* General Layout */
+.statistics-layout {
+  min-height: 100vh;
+  background-color: #F8F9FA;
+}
+
+.statistics-sider {
+  background: #FFFFFF !important;
+  padding: 24px;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.statistics-header {
+  background: #FFFFFF !important;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #E6E9EE;
+  height: 64px;
+}
+
+.statistics-content {
+  padding: 24px;
+  overflow-y: auto;
+  height: 100vh;
+  background-color: #F8F9FA;
+}
+
+/* Sidebar Header */
+.shelf-monitoring-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.shelf-monitoring-header .ant-typography {
+  color: #111827 !important;
+  margin-bottom: 8px !important;
+}
+
+.date-range {
+  color: #6B7280 !important;
+  font-size: 12px;
+}
+
+/* Shelf Count Card */
+.shelf-count-card {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.shelf-count {
+  display: flex;
+  flex-direction: column;
+}
+
+.count-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.count-label {
+  color: #6B7280 !important;
+  font-size: 12px;
+}
+
+/* Shelf Name Section */
+.shelf-name-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  color: #111827 !important;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.shelf-checkbox-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.shelf-checkbox-list .ant-checkbox-wrapper {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 13px;
+}
+
+/* Main Content Sections */
+.osa-charts-section {
+  margin-bottom: 32px;
+}
+
+.osa-charts-section .ant-typography {
+  color: #111827 !important;
+}
+
+/* OSA Chart Cards */
+.osa-chart-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.chart-header {
+  margin-bottom: 16px;
+}
+
+.chart-header .ant-typography {
+  color: #111827 !important;
+  font-weight: 600;
+  margin-bottom: 8px !important;
+}
+
+.chart-info {
+  background: #1F2937;
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  position: relative;
+}
+
+.chart-info::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #1F2937;
+}
+
+.chart-info .ant-typography {
+  color: white !important;
+  margin-bottom: 2px !important;
+  display: block;
+}
+
+.chart-timestamp {
+  color: #FBBF24 !important;
+  font-weight: 600;
+}
+
+.chart-status {
+  color: white !important;
+}
+
+.chart-duration {
+  color: #D1D5DB !important;
+}
+
+/* Table Detail Section */
+.table-detail-section {
+  margin-bottom: 32px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.table-header .ant-typography {
+  color: #111827 !important;
+}
+
+.table-legend {
+  display: flex;
+  align-items: center;
+}
+
+.legend-item {
+  color: #6B7280;
+  font-size: 12px;
+}
+
+.legend-item::before {
+  content: '●';
+  color: #EF4444;
+  margin-right: 4px;
+}
+
+.detail-table {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-table .ant-table-thead > tr > th {
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  color: #374151;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.detail-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #F3F4F6;
+  color: #111827;
+  font-size: 13px;
+}
+
+/* Loss Analysis Section */
+.loss-analysis-section {
+  margin-bottom: 32px;
+}
+
+.loss-analysis-section .ant-typography {
+  color: #111827 !important;
+}
+
+.analysis-card {
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.analysis-card .ant-card-body {
+  padding: 20px;
+}
+
+/* Date Filter */
+.date-filter .ant-typography {
+  color: #374151 !important;
+  font-weight: 500;
+  margin-bottom: 8px !important;
+}
+
+/* Metrics */
+.metric-item {
+  text-align: left;
+}
+
+.metric-label {
+  color: #6B7280 !important;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 8px !important;
+}
+
+.metric-value {
+  color: #111827 !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+
+.metric-description {
+  color: #6B7280 !important;
+  font-size: 11px;
+  line-height: 1.4;
+  margin-bottom: 12px !important;
+}
+
+.metric-main-value {
+  color: #111827 !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+}
+
+.metric-target {
+  color: #6B7280 !important;
+  font-size: 12px;
+}
+
+/* Placeholder Charts */
+.placeholder-chart {
+  width: 100%;
+  height: 100%;
+  background: #F3F4F6;
+  border: 1px dashed #D1D5DB;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  font-size: 12px;
+}
+
+/* Expandable Table */
+.expandable-table {
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table-row {
+  display: flex;
+  background: #F9FAFB;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-row .ant-typography {
+  flex: 1;
+  color: #374151 !important;
+  margin: 0 !important;
+  font-size: 12px;
+}
+
+.table-expandable {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  gap: 8px;
+}
+
+.expand-btn {
+  color: #6B7280 !important;
+  font-size: 12px;
+  padding: 2px 8px;
+  height: auto;
+  border: 1px solid #D1D5DB;
+  border-radius: 4px;
+  background: white;
+}
+
+.expand-btn:hover {
+  color: #374151 !important;
+  border-color: #9CA3AF;
+}
+
+.shelf-details {
+  background: white;
+}
+
+.shelf-detail-row {
+  display: flex;
+  padding: 8px 16px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.shelf-detail-row.highlighted {
+  background: #FEF3CD;
+}
+
+.shelf-detail-row .ant-typography {
+  flex: 1;
+  color: #374151 !important;
+  margin: 0 !important;
+  font-size: 12px;
+}
+
+.shelf-detail-row:last-child {
+  border-bottom: none;
+}
+
+/* Typography Overrides */
+.ant-typography {
+  color: #6B7280 !important;
+}
+
+h1.ant-typography, .ant-typography h1,
+h2.ant-typography, .ant-typography h2,
+h3.ant-typography, .ant-typography h3,
+h4.ant-typography, .ant-typography h4,
+h5.ant-typography, .ant-typography h5 {
+  color: #111827 !important;
+}
+
+/* Input Styles */
+.ant-input {
+  border-color: #D1D5DB;
+  border-radius: 6px;
+}
+
+.ant-input:focus, .ant-input-focused {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Select Styles */
+.ant-select {
+  border-radius: 6px;
+}
+
+.ant-select-selector {
+  border-color: #D1D5DB !important;
+  border-radius: 6px !important;
+}
+
+.ant-select-focused .ant-select-selector {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Card Styles */
+.ant-card {
+  border-color: #E5E7EB;
+  border-radius: 8px;
+}
+
+.ant-card-head {
+  border-bottom-color: #E5E7EB;
+}
+
+/* Checkbox Styles */
+.ant-checkbox-wrapper {
+  color: #374151;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #3B82F6;
+  border-color: #3B82F6;
+}
+
+.ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #3B82F6;
+}
+
+/* Button Styles */
+.ant-btn {
+  border-radius: 6px;
+}

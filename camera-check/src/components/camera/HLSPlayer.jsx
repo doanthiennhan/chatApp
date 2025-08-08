@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+/* import React, { useRef, useEffect } from "react";
 import Hls from "hls.js";
 
 const HlsPlayer = ({ src }) => {
@@ -23,14 +23,13 @@ const HlsPlayer = ({ src }) => {
             startLevel: -1,  // Bắt đầu ở mức tốt nhất có thể
             initialLiveManifestSize: 1,  // Đảm bảo tải 1 segment ngay từ đầu
           });
-          hls.loadSource(src);  // URL của stream M3U8
+          hls.loadSource(src);
           hls.attachMedia(videoRef.current);
       
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            videoRef.current.play().catch(console.error);  // Phát video ngay khi stream sẵn sàng
+            videoRef.current.play().catch(console.error);  
           });
         } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
-          // Cho các trình duyệt hỗ trợ HLS natively như Safari
           videoRef.current.src = src;
           videoRef.current.addEventListener("loadedmetadata", () => {
             videoRef.current.play().catch(console.error);
@@ -52,10 +51,10 @@ const HlsPlayer = ({ src }) => {
       ref={videoRef}
       controls
       autoPlay
-      muted={false} // Đảm bảo không tắt tiếng
+      muted={false}
       style={{ width: "100%", maxHeight: "500px" }}
     />
   );
 };
 
-export default HlsPlayer;
+export default HlsPlayer; */

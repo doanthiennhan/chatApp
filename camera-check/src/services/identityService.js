@@ -14,7 +14,6 @@ const identityApi = axios.create({
   },
 });
 
-// --- Helpers ---
 export const setAccessToken = (token) => {
   let userInfo = null;
   let roles = null;
@@ -45,7 +44,6 @@ const isTokenValid = (token) => {
   }
 };
 
-// --- Token Refresh Logic ---
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -119,7 +117,6 @@ identityApi.interceptors.response.use(
   }
 );
 
-// --- Auth API ---
 export const signin = async (email, password) => {
   const res = await identityApi.post("/api/auth/signin", { email, password });
   const { accessToken } = res.data.data;
@@ -137,7 +134,6 @@ export const logout = async () => {
   removeAccessToken();
 };
 
-// --- User API ---
 export const searchUsers = (search = '', page = 1, size = 10) => 
   identityApi.get(`/users?search=${search}&page=${page}&size=${size}`);
 

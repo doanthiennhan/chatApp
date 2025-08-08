@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+/* import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchChannels, setSelectedChannel } from "../../store/slices/chatSlice";
 import { Button } from "antd";
@@ -47,4 +47,4 @@ const Sidebar = () => {
     </div>
   );
 };
-export default Sidebar; 
+export default Sidebar; */
