@@ -153,7 +153,7 @@ public class CameraStream {
         clients.add(client);
         log.info("Added client to camera {}. Total clients: {}", cameraId, clients.size());
 
-        if (!running.get()) {http://localhost:5173/
+        if (!running.get()) {
             start();
         }
     }

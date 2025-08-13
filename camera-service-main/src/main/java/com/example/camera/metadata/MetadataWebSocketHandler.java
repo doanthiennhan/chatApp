@@ -101,14 +101,14 @@ public class    MetadataWebSocketHandler extends TextWebSocketHandler {
             stream.removeClient(new ClientSession(session));
             if (!stream.hasClients()) {
                 activeMetadata.remove(cameraId);
-                log.info("🛑 Removed metadata stream for camera {} as all clients disconnected", cameraId);
+                log.info("Removed metadata stream for camera {} as all clients disconnected", cameraId);
             }
         }
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) {
-        log.warn("⚠️ Metadata transport error: {}", exception.getMessage());
+        log.warn("⚠Metadata transport error: {}", exception.getMessage());
         try {
             session.close(CloseStatus.SERVER_ERROR);
         } catch (Exception e) {
@@ -118,6 +118,5 @@ public class    MetadataWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-        // Not processing incoming messages from client
     }
 }

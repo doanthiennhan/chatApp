@@ -78,15 +78,26 @@ public class MetadataStream {
 
     public void addClient(MetadataWebSocketHandler.ClientSession client) {
         clients.add(client);
-        log.info("➕ Metadata client added for camera {}. Total: {}", cameraId, clients.size());
+        log.info("Metadata client added for camera {}. Total: {}", cameraId, clients.size());
+
+        try {
+            String metadata = extractMetadata(0);
+            if (metadata != null) {
+                client.send(metadata);
+            }
+        } catch (Exception e) {
+            log.error("Error sending initial metadata: {}", e.getMessage());
+        }
+
         if (!running.get()) {
             start();
         }
     }
 
+
     public void removeClient(MetadataWebSocketHandler.ClientSession client) {
         clients.remove(client);
-        log.info("➖ Metadata client removed for camera {}. Remaining: {}", cameraId, clients.size());
+        log.info("Metadata client removed for camera {}. Remaining: {}", cameraId, clients.size());
         if (clients.isEmpty()) {
             stop();
         }
