@@ -29,7 +29,7 @@ const Register = () => {
     if (isTokenValid(token)) {
       navigate("/", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -39,7 +39,7 @@ const Register = () => {
       setTimeout(() => {
         window.location.href = "/login";
       }, 700);
-    } catch (err) {
+    } catch {
       messageApi.error("Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setLoading(false);

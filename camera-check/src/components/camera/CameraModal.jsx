@@ -1,11 +1,9 @@
 import { Modal, Badge, Spin } from "antd";
 import { useEffect } from "react";
-import { useSelector, useDispatch } from 'react-redux';
 import StreamPlayer from "./StreamPlayer";
 import { useCameraRealTimeStatus } from "../../hooks/useCameraRealTimeStatus";
 
 const CameraModal = ({ selectedCamera, visible, onClose }) => {
-  const dispatch = useDispatch();
   
   const realTimeStatus = useCameraRealTimeStatus(selectedCamera?.id);
 

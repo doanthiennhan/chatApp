@@ -22,7 +22,9 @@ const AppHeader = () => {
     removeAccessToken();
     try {
       await identityApi.post('/auth/logout');
-    } catch {}
+    } catch {
+      // Do nothing
+    }
     message.success('Đăng xuất thành công!');
     window.location.href = '/login';
   };

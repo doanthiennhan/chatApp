@@ -34,7 +34,7 @@ const renderMessageContent = (msg) => {
     }
 }
 
-const MessageList = ({ messages, currentUser, conversationId, hasMore, isLoadingMore, currentPage }) => {
+const MessageList = ({ messages, conversationId, hasMore, isLoadingMore, currentPage }) => {
     const messageListRef = useRef(null);
     const scrollStateBeforeLoad = useRef({ scrollHeight: 0, scrollTop: 0 });
     const isInitialLoad = useRef(true);

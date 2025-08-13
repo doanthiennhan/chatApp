@@ -129,7 +129,7 @@ export const useJsmpegPlayer = (cameraId, isStreaming, canvasRef) => {
       console.log(`[${cameraId}] Cleanup function for useEffect. isStreaming: ${isStreaming}`);
       destroyPlayer();
     };
-  }, [cameraId, isStreaming, canvasRef.current, isMuted]);
+  }, [cameraId, isStreaming, canvasRef, isMuted]);
 
   const toggleMute = () => {
     const player = playerRef.current;

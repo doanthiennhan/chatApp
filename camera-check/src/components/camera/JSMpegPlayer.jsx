@@ -1,4 +1,4 @@
-/* import React, { useRef } from 'react';
+import React, { useRef } from 'react';
 import { Card } from 'antd';
 import { useJSMpegStream } from './jsmpeg';
 import JSMpegHeader from './jsmpeg/JSMpegHeader';
@@ -75,4 +75,4 @@ const JSMpegPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
   );
 };
 
-export default JSMpegPlayer; */
+export default JSMpegPlayer;

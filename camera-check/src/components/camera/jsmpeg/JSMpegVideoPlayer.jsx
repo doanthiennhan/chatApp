@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Spin } from 'antd';
 import { testCanvasRef } from '../../../utils/canvasTest';
 
@@ -8,7 +8,7 @@ const JSMpegVideoPlayer = ({ connectionStatus, canvasRef }) => {
     if (canvasRef.current) {
       testCanvasRef(canvasRef);
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
   return (
     <div style={{ 

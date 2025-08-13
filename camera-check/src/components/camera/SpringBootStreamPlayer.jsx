@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, message, Badge, Descriptions, Spin, Tooltip, Progress, Space, Tag } from 'antd';
 import { 
   PlayCircleOutlined, 
@@ -13,10 +13,9 @@ import {
   ReloadOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
 import JSMpeg from "@cycjimmy/jsmpeg-player";
 import styled from "styled-components";
-import { getWebSocketUrl, getMetadataWebSocketUrl, createWebSocketConnection, parseStreamMetadata } from '../../utils/websocket';
+import { getWebSocketUrl, getMetadataWebSocketUrl, createWebSocketConnection } from '../../utils/websocket';
 import { testCanvasRef, waitForCanvasRef } from '../../utils/canvasTest';
 import { getJSMpegOptions } from '../../utils/webglCheck';
 import { useCameraRealTimeStatus } from '../../hooks/useCameraRealTimeStatus';
@@ -128,19 +127,21 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     if (canvasRef.current) {
       testCanvasRef(canvasRef);
     }
-  }, [canvasRef.current]);
+  }, [canvasRef]);
 
   useEffect(() => {
+    const timeout = timeoutRef.current;
+    const metrics = metricsRef.current;
     return () => {
       console.log('🔧 Cleaning up SpringBootStreamPlayer component');
       if (playerRef.current) {
         handleStopStream();
       }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (timeout) {
+        clearTimeout(timeout);
       }
-      if (metricsRef.current) {
-        clearInterval(metricsRef.current);
+      if (metrics) {
+        clearInterval(metrics);
       }
       if (metadataWebSocketRef.current && metadataWebSocketRef.current.readyState !== WebSocket.CLOSED) {
         try {
@@ -151,7 +152,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
         metadataWebSocketRef.current = null;
       }
     };
-  }, []);
+  }, [handleStopStream]);
 
   useEffect(() => {
     if (isInModal && !visible) {
@@ -174,7 +175,7 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
         metadataWebSocketRef.current = null;
       }
     }
-  }, [isInModal, visible]);
+  }, [isInModal, visible, handleStopStream]);
 
   const handleZoomIn = () => {
     setZoomLevel(prev => Math.min(prev + 0.25, 3));
@@ -369,7 +370,10 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
     }
   };
 
-  const handleStopStream = () => {
+   
+   
+   
+  const handleStopStream = useCallback(() => {
     console.log('🔧 Stopping SpringBoot stream');
     if (playerRef.current) {
       try {
@@ -393,8 +397,9 @@ const SpringBootStreamPlayer = ({ camera, selectedCamera, isInModal = false, vis
       latency: 0
     });
     stopMetadataStream();
+     
     message.info('Stream đã dừng');
-  };
+  }, [message]);
 
   const getStatusColor = () => {
     switch (connectionStatus) {

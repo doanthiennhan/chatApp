@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { message } from 'antd';
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 import { getJSMpegOptions } from '../../../utils/webglCheck';
@@ -35,17 +35,17 @@ export const useJSMpegStream = (camera, isInModal = false, visible = true) => {
         metadataWebSocketRef.current = null;
       }
     };
-  }, [isStreaming]);
+  }, [isStreaming, handleStopStream]);
 
   useEffect(() => {
     if (isInModal && !visible) handleStopStream();
-  }, [isInModal, visible]);
+  }, [isInModal, visible, handleStopStream]);
 
   useEffect(() => {
     const handleBeforeUnload = () => handleStopStream();
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isStreaming]);
+  }, [isStreaming, handleStopStream]);
 
   const startStream = (cameraId) => {
     if (activeStreams.has(cameraId)) return;
@@ -149,7 +149,7 @@ export const useJSMpegStream = (camera, isInModal = false, visible = true) => {
           renderer: 'canvas',
           pauseWhenHidden: false,
           onPlay: () => setConnectionStatus('connected'),
-          onError: (e) => {
+          onError: () => {
             setConnectionStatus('error');
             message.error('Lỗi phát video MPEG1');
           },
@@ -195,7 +195,10 @@ export const useJSMpegStream = (camera, isInModal = false, visible = true) => {
     }
   };
 
-  const handleStopStream = () => {
+   
+   
+   
+  const handleStopStream = useCallback(() => {
     if (!camera?.id) return;
     setLoading(true);
     try {
@@ -203,6 +206,7 @@ export const useJSMpegStream = (camera, isInModal = false, visible = true) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setIsStreaming(false);
       setConnectionStatus('disconnected');
+       
       message.success(`Đã dừng stream camera: ${camera.name}`);
       if (playerRef.current) {
         playerRef.current.destroy();
@@ -216,11 +220,12 @@ export const useJSMpegStream = (camera, isInModal = false, visible = true) => {
         metadataWebSocketRef.current = null;
       }
     } catch (error) {
+       
       message.error('Lỗi khi dừng stream: ' + error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [camera?.id, camera?.name, stopStream, message]);
 
   return {
     isStreaming,

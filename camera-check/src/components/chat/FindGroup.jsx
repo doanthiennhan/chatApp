@@ -1,4 +1,4 @@
-/* const FindGroup = () => {
+const FindGroup = () => {
   return (
     <div>
       {/* Modal tìm kiếm nhóm sẽ được bổ sung sau */}
@@ -6,4 +6,4 @@
     </div>
   );
 };
-export default FindGroup; */
+export default FindGroup;

@@ -1,9 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import * as chatService from "../../services/chatService";
+import "../types"; // Import JSDoc types
+
+/**
+ * @typedef {object} ChatState
+ * @property {Conversation[]} conversations
+ * @property {{data: Message[], currentPage: number, totalPages: number, loading: boolean}} messages
+ * @property {string | null} activeConversationId
+ * @property {'idle' | 'loading' | 'succeeded' | 'failed'} status
+ * @property {string | null} error
+ */
 
 // Async thunk to fetch the current user's conversations
 export const fetchConversations = createAsyncThunk(
   "chat/fetchConversations",
+  /** @param {void} _ */
   async (_, { rejectWithValue }) => {
     try {
       const res = await chatService.getMyConversations();
@@ -16,6 +27,7 @@ export const fetchConversations = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   "chat/fetchMessages",
+  /** @param {{conversationId: string}} payload */
   async ({ conversationId }, { rejectWithValue }) => {
     try {
       const res = await chatService.getMessagesByConversation(conversationId, 1);
@@ -28,6 +40,7 @@ export const fetchMessages = createAsyncThunk(
 
 export const fetchMoreMessages = createAsyncThunk(
   "chat/fetchMoreMessages",
+  /** @param {{conversationId: string, page: number}} payload */
   async ({ conversationId, page }, { rejectWithValue }) => {
     try {
       const res = await chatService.getMessagesByConversation(conversationId, page);
@@ -41,6 +54,7 @@ export const fetchMoreMessages = createAsyncThunk(
 // Async thunk to send a message
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
+  /** @param {{conversationId: string, message: string, type: 'TEXT' | 'IMAGE' | 'FILE'}} payload */
   async ({ conversationId, message, type }, { rejectWithValue }) => {
     try {
       const res = await chatService.createMessage(conversationId, message, type);
@@ -54,6 +68,7 @@ export const sendMessage = createAsyncThunk(
 // Async thunk to create a new group conversation
 export const createGroup = createAsyncThunk(
   "chat/createGroup",
+  /** @param {{name: string, participantIds: string[]}} payload */
   async ({ name, participantIds }, { rejectWithValue }) => {
     try {
       const res = await chatService.createConversation(name, participantIds, "GROUP");
@@ -64,26 +79,31 @@ export const createGroup = createAsyncThunk(
   }
 );
 
+/** @type {ChatState} */
+const initialState = {
+  conversations: [],
+  messages: {
+    data: [],
+    currentPage: 1,
+    totalPages: 1,
+    loading: false,
+  },
+  activeConversationId: null,
+  status: 'idle',
+  error: null,
+};
+
 const chatSlice = createSlice({
   name: "chat",
-  initialState: {
-    conversations: [],
-    messages: {
-      data: [],
-      currentPage: 1,
-      totalPages: 1,
-      loading: false,
-    },
-    activeConversationId: null,
-    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
-    error: null,
-  },
+  initialState,
   reducers: {
+    /** @param {import("@reduxjs/toolkit").PayloadAction<string>} action */
     setActiveConversation: (state, action) => {
       state.activeConversationId = action.payload;
       state.messages = { data: [], currentPage: 1, totalPages: 1, loading: false };
       state.status = 'idle';
     },
+    /** @param {import("@reduxjs/toolkit").PayloadAction<Message>} action */
     addMessage: (state, action) => {
       const newMessage = action.payload;
 
@@ -118,7 +138,9 @@ const chatSlice = createSlice({
       .addCase(fetchConversations.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(fetchConversations.fulfilled, (state, action) => {
+      .addCase(fetchConversations.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<Conversation[]>} action */
+        (state, action) => {
         state.status = 'succeeded';
         state.conversations = action.payload;
         if (!state.activeConversationId && action.payload.length > 0) {
@@ -134,7 +156,9 @@ const chatSlice = createSlice({
       .addCase(fetchMessages.pending, (state) => {
         state.messages.loading = true;
       })
-      .addCase(fetchMessages.fulfilled, (state, action) => {
+      .addCase(fetchMessages.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<PaginatedMessages>} action */
+        (state, action) => {
         state.messages.loading = false;
         state.messages.data = action.payload.data.reverse();
         state.messages.currentPage = action.payload.currentPage;
@@ -149,7 +173,9 @@ const chatSlice = createSlice({
       .addCase(fetchMoreMessages.pending, (state) => {
         state.messages.loading = true;
       })
-      .addCase(fetchMoreMessages.fulfilled, (state, action) => {
+      .addCase(fetchMoreMessages.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<PaginatedMessages>} action */
+        (state, action) => {
         state.messages.loading = false;
         state.messages.data = [...action.payload.data.reverse(), ...state.messages.data];
         state.messages.currentPage = action.payload.currentPage;
@@ -160,7 +186,9 @@ const chatSlice = createSlice({
       })
 
       // --- SEND MESSAGE --- //
-      .addCase(sendMessage.fulfilled, (state, action) => {
+      .addCase(sendMessage.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<Message>} action */
+        (state, action) => {
         const newMessage = action.payload;
         state.messages.data.push(newMessage);
         
@@ -176,7 +204,9 @@ const chatSlice = createSlice({
         }
       })
 
-      .addCase(createGroup.fulfilled, (state, action) => {
+      .addCase(createGroup.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<Conversation>} action */
+        (state, action) => {
         state.conversations.unshift(action.payload);
         state.activeConversationId = action.payload.id;
       });

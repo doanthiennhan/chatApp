@@ -10,13 +10,7 @@ import identityApi, { getAccessToken } from './services/identityService';
 import { jwtDecode } from 'jwt-decode';
 import { ConfigProvider, App as AntdApp } from 'antd';
 
-// Polyfill for global object needed by SockJS
-if (typeof global === 'undefined') {
-  window.global = window;
-}
 
-// Test the polyfill
-console.log('🔧 Global polyfill test:', typeof global, global === window);
 
 const isTokenValid = (token) => {
   if (!token) return false;

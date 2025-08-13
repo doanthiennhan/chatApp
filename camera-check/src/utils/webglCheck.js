@@ -1,3 +1,5 @@
+import JSMpeg from '@cycjimmy/jsmpeg-player';
+
 // WebGL support check utility
 
 export const checkWebGLSupport = () => {
@@ -5,7 +7,7 @@ export const checkWebGLSupport = () => {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     return !!gl;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -43,7 +45,6 @@ export const getJSMpegOptions = (canvas, url, customOptions = {}) => {
 export const createSafeJSMpegPlayer = (url, canvas, options = {}) => {
   try {
     const safeOptions = getJSMpegOptions(canvas, url, options);
-    const JSMpeg = require('@cycjimmy/jsmpeg-player');
     return new JSMpeg.Player(url, safeOptions);
   } catch (error) {
     console.error('🔧 Failed to create JSMpeg player:', error);

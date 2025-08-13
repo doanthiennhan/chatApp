@@ -79,7 +79,7 @@ const AddFriendModal = ({ visible, onCancel }) => {
             form.resetFields();
             setSelectedUser(null);
             onCancel();
-        } catch (error) {
+        } catch {
             message.error("Gửi lời mời kết bạn thất bại");
         } finally {
             setLoading(false);

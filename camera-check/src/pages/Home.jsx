@@ -76,7 +76,7 @@ const Home = () => {
         rtspUrl: cam.rtspUrl,
       }));
       setCameras(apiCameras);
-    } catch (err) {
+    } catch {
       message.error("Không thể tải danh sách camera");
     } finally {
       setLoading(false);
@@ -91,7 +91,9 @@ const Home = () => {
     removeAccessToken();
     try {
       await identityApi.post("/auth/logout");
-    } catch {}
+    } catch {
+      // Do nothing
+    }
     message.success("Đăng xuất thành công!");
     window.location.href = "/login";
   };

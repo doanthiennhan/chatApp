@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, message } from 'antd';
+import { Layout } from 'antd';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import GroupInfoDrawer from '../components/chat/GroupInfoDrawer';
 import CreateGroupModal from '../components/chat/CreateGroupModal';
 import AddFriendModal from '../components/chat/AddFriendModal';
 import { useSelector, useDispatch } from 'react-redux';
-import { addMessage, fetchConversations } from '../store/slices/chatSlice';
+import { addMessage } from '../store/slices/chatSlice';
 import io from 'socket.io-client';
 import { getAccessToken } from '../services/identityService';
 import ErrorBoundary from '../components/common/ErrorBoundary';

@@ -1,5 +1,18 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { fetchCameras, deleteCamera as apiDeleteCamera, updateCamera as apiUpdateCamera, createCamera as apiCreateCamera } from '../../services/cameraService';
+import "../types"; // Import JSDoc types
+
+/**
+ * @typedef {object} CameraState
+ * @property {Camera[]} list
+ * @property {'idle' | 'loading' | 'succeeded' | 'failed'} status
+ * @property {string | null} error
+ * @property {string[]} activeStreamIds
+ * @property {string | null} editingCameraId
+ * @property {object} healthStatus
+ * @property {string[]} displayedCameraIds
+ * @property {Object.<string, CameraStatusUpdate>} realTimeStatus
+ */
 
 // Async thunk để fetch danh sách camera
 export const getCameras = createAsyncThunk(
@@ -17,6 +30,7 @@ export const getCameras = createAsyncThunk(
 // Async thunk để tạo camera
 export const createCamera = createAsyncThunk(
   'camera/createCamera',
+  /** @param {Camera} cameraData */
   async (cameraData, { rejectWithValue }) => {
     try {
       const data = await apiCreateCamera(cameraData);
@@ -43,6 +57,7 @@ export const deleteCamera = createAsyncThunk(
 // Async thunk để sửa camera
 export const updateCamera = createAsyncThunk(
   'camera/updateCamera',
+  /** @param {Camera} cameraData */
   async (cameraData, { rejectWithValue }) => {
     try {
       const data = await apiUpdateCamera(cameraData);
@@ -53,19 +68,21 @@ export const updateCamera = createAsyncThunk(
   }
 );
 
+/** @type {CameraState} */
+const initialState = {
+  list: [],
+  status: 'idle',
+  error: null,
+  activeStreamIds: [], 
+  editingCameraId: null,
+  healthStatus: {}, 
+  displayedCameraIds: JSON.parse(localStorage.getItem('displayedCameraIds')) || [],
+  realTimeStatus: {},
+};
+
 const cameraSlice = createSlice({
   name: 'camera',
-  initialState: {
-    list: [],
-    status: 'idle',
-    error: null,
-    activeStreamIds: [], 
-    editingCameraId: null,
-    healthStatus: {}, 
-    displayedCameraIds: JSON.parse(localStorage.getItem('displayedCameraIds')) || [],
-    // Thêm state để lưu trạng thái real-time từ WebSocket
-    realTimeStatus: {},
-  },
+  initialState,
   reducers: {
     startStreaming: (state, action) => {
       if (!state.activeStreamIds.includes(action.payload)) {
@@ -81,7 +98,9 @@ const cameraSlice = createSlice({
       const { cameraId, healthData } = action.payload;
       state.healthStatus[cameraId] = healthData;
     },
-    // Action mới để cập nhật trạng thái camera từ WebSocket
+    /**
+     * @param {import("@reduxjs/toolkit").PayloadAction<CameraStatusUpdate>} action
+     */
     updateCameraStatus: (state, action) => {
       const { cameraId, status, viewerCount, name, location, resolution, vendor } = action.payload;
       
@@ -137,7 +156,9 @@ const cameraSlice = createSlice({
         state.status = 'loading';
         state.error = null;
       })
-      .addCase(getCameras.fulfilled, (state, action) => {
+      .addCase(getCameras.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<{data: {data: Camera[]}}>} action */
+        (state, action) => {
         state.status = 'succeeded';
         // Correctly extract the data array and add lastUpdated property as ISO string
         state.list = (action.payload?.data?.data || []).map(cam => ({
@@ -150,7 +171,9 @@ const cameraSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       })
-      .addCase(createCamera.fulfilled, (state, action) => {
+      .addCase(createCamera.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<Camera>} action */
+        (state, action) => {
         state.list.push(action.payload);
       })
       // Xử lý xóa camera
@@ -158,7 +181,9 @@ const cameraSlice = createSlice({
         state.list = state.list.filter(cam => cam.id !== action.payload);
       })
       // Xử lý sửa camera
-      .addCase(updateCamera.fulfilled, (state, action) => {
+      .addCase(updateCamera.fulfilled,
+        /** @param {import("@reduxjs/toolkit").PayloadAction<Camera>} action */
+        (state, action) => {
         const idx = state.list.findIndex(cam => cam.id === action.payload.id);
         if (idx !== -1) {
           state.list[idx] = action.payload;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 
-const JSMpegHeader = ({ camera, connectionStatus, viewerCount, isStreaming, loading, onStartStream, onStopStream }) => {
+const JSMpegHeader = ({ camera, viewerCount }) => {
 
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

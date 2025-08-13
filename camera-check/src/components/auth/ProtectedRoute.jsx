@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/default
+ 
 import { Navigate } from "react-router-dom";
 import { getAccessToken, removeAccessToken } from "../../services/identityService";
 import { jwtDecode } from "jwt-decode";

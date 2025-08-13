@@ -72,30 +72,7 @@ const CameraGridItem = ({ camera, onViewDetails }) => {
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
   const handleResetZoom = () => setZoomLevel(1);
 
-  const menuItems = [
-    {
-      key: 'edit',
-      icon: <EditOutlined />,
-      label: 'Sửa thông tin',
-      onClick: handleEdit,
-    },
-    {
-      key: 'delete',
-      icon: <DeleteOutlined />,
-      danger: true,
-      label: (
-        <Popconfirm
-          title="Bạn có chắc muốn xóa?"
-          onConfirm={handleDelete}
-          okText="Xóa"
-          cancelText="Hủy"
-          placement="left"
-        >
-          Xóa Camera
-        </Popconfirm>
-      ),
-    },
-  ];
+  
 
   const currentStatus = realTimeStatus?.status || camera?.status || 'OFFLINE';
   const currentViewerCount = viewerCount || 0;

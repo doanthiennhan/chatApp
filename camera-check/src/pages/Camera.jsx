@@ -2,12 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import CameraGridItem from "../components/camera/CameraGridItem";
 import CreateCameraModal from "../components/camera/CreateCameraModal";
-import { Row, Col, Spin, Button, Layout, Menu, Avatar, Dropdown, Space, Card, Typography, Badge } from "antd";
+import { Row, Col, Spin, Button, Layout, Menu, Avatar, Dropdown, Space, Card, Typography, Badge, message } from "antd";
 import { PlusOutlined, UserOutlined, CameraOutlined, MessageOutlined, DownOutlined, HomeOutlined, BellOutlined } from "@ant-design/icons";
-import { getCameras, setEditingCameraId, clearEditingCameraId } from "../store/slices/cameraSlice";
+import { getCameras, clearEditingCameraId } from "../store/slices/cameraSlice";
 import CameraModal from "../components/camera/CameraModal";
 import SelectCamerasModal from "../components/camera/SelectCamerasModal";
-import { useAllCameraRealTimeStatus } from "../hooks/useCameraRealTimeStatus";
 import WebSocketStatus from "../components/common/WebSocketStatus";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import "../styles/CameraGrid.css";
@@ -34,7 +33,7 @@ const Camera = () => {
     Array.isArray(state.camera.list) ? state.camera.list.find(cam => cam.id === editingCameraId) : undefined
   );
   
-  const allCameraRealTimeStatus = useAllCameraRealTimeStatus();
+  
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectCamerasModalOpen, setSelectCamerasModalOpen] = useState(false);
@@ -66,7 +65,9 @@ const Camera = () => {
     removeAccessToken();
     try {
       await identityApi.post("/auth/logout");
-    } catch {}
+    } catch {
+      // Do nothing
+    }
     message.success("Đăng xuất thành công!");
     window.location.href = "/login";
   };
@@ -97,9 +98,7 @@ const Camera = () => {
     { id: 2, type: 'error', message: 'Storage space low', time: '5 min ago' },
     { id: 3, type: 'info', message: 'System update available', time: '10 min ago' },
   ];
-  const getCameraRealTimeStatus = (cameraId) => {
-    return allCameraRealTimeStatus[cameraId] || { status: 'OFFLINE', viewerCount: 0 };
-  };
+  
 
   return (
     <Layout style={{ minHeight: "100vh", background: "#f5f6fa" }}>

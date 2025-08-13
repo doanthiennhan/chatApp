@@ -1,4 +1,4 @@
-/* import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, message, Badge, Descriptions, Spin } from 'antd';
 import { PlayCircleOutlined, StopOutlined, EyeOutlined, WifiOutlined } from '@ant-design/icons';
 import { startStream, stopStream } from '../../services/cameraService';
@@ -52,7 +52,7 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
       heartbeatOutgoing: 4000,
     });
 
-    stompClient.onConnect = (frame) => {
+    stompClient.onConnect = () => {
       console.log('STOMP Connected for camera:', currentCamera.id);
       setConnectionStatus('connecting');
 
@@ -195,7 +195,7 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
         videoRef.current.src = '';
       }
     };
-  }, [isStreaming]);
+  }, [isStreaming, handleStopStream]);
 
   // Additional cleanup when modal closes
   useEffect(() => {
@@ -222,7 +222,7 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
         videoRef.current.src = '';
       }
     }
-  }, [isInModal, visible, isStreaming]);
+  }, [isInModal, visible, isStreaming, handleStopStream]);
 
   // Cleanup when page is closed or refreshed
   useEffect(() => {
@@ -255,54 +255,62 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isStreaming]);
+  }, [isStreaming, handleStopStream]);
 
-  const handleStartStream = async () => {
-    if (!currentCamera?.id) {
-      message.error('Camera ID không hợp lệ');
-      return;
-    }
+  const handleStartStream = useCallback(() => {
+    const start = async () => {
+      if (!currentCamera?.id) {
+        message.error('Camera ID không hợp lệ');
+        return;
+      }
 
-    setLoading(true);
-    setConnectionStatus('connecting');
+      setLoading(true);
+      setConnectionStatus('connecting');
 
-    try {
-      console.log('🔧 Starting stream for camera:', currentCamera.id);
-      
-      // Start stream on backend with correct request body
-      const result = await startStream(currentCamera.id, false);
-      console.log('🔧 Start stream API result:', result);
-      
-      // Check if stream started successfully
-      if (result && (result.message || result.toString().includes('true'))) {
-        setIsStreaming(true);
-        message.success(`Đã bắt đầu stream camera: ${currentCamera.name}`);
+      try {
+        console.log('🔧 Starting stream for camera:', currentCamera.id);
         
-        // Chỉ mở SockJS connection khi stream thành công
-        console.log('🔧 Stream started successfully, initializing SockJS connection');
-        const sockJSInitialized = initializeSockJSConnection();
+        // Start stream on backend with correct request body
+        const result = await startStream(currentCamera.id, false);
+        console.log('🔧 Start stream API result:', result);
         
-        if (sockJSInitialized) {
-          // Initialize WebRTC connection
-          await initializeWebRTC();
+        // Check if stream started successfully
+        if (result && (result.message || result.toString().includes('true'))) {
+          setIsStreaming(true);
+           
+          message.success(`Đã bắt đầu stream camera: ${currentCamera.name}`);
+          
+          // Chỉ mở SockJS connection khi stream thành công
+          console.log('🔧 Stream started successfully, initializing SockJS connection');
+          const sockJSInitialized = initializeSockJSConnection();
+          
+          if (sockJSInitialized) {
+            // Initialize WebRTC connection
+            await initializeWebRTC();
+          } else {
+            setConnectionStatus('error');
+             
+            message.error('Không thể khởi tạo kết nối kết nối WebSocket');
+          }
         } else {
           setConnectionStatus('error');
-          message.error('Không thể khởi tạo kết nối WebSocket');
+           
+          message.error('Không thể bắt đầu stream');
         }
-      } else {
+      } catch (error) {
+        console.error('Error starting stream:', error);
         setConnectionStatus('error');
-        message.error('Không thể bắt đầu stream');
+         
+        message.error('Lỗi khi bắt đầu stream: ' + error.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error starting stream:', error);
-      setConnectionStatus('error');
-      message.error('Lỗi khi bắt đầu stream: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    start();
+  }, [currentCamera, message]);
 
-  const handleStopStream = async () => {
+   
+  const handleStopStream = useCallback(async () => {
     if (!currentCamera?.id) return;
 
     setLoading(true);
@@ -347,7 +355,7 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
     } finally {
       setLoading(false);
     }
-  };
+  }, [closeSockJSConnection, message]);
 
   const initializeWebRTC = async () => {
     try {
@@ -510,6 +518,7 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
             onError={(e) => {
               console.error('Video error:', e);
               setConnectionStatus('error');
+               
               message.error('Lỗi phát video');
             }}
           />
@@ -560,4 +569,3 @@ const CameraPlayer = ({ camera, selectedCamera, isInModal = false, visible = tru
 };
 
 export default CameraPlayer;
-*/

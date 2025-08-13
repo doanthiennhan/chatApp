@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Card, Spin, message, App } from 'antd';
+import { Layout, Menu, Card, Spin, App } from 'antd';
 import {
     UserOutlined,
     VideoCameraOutlined,
@@ -92,7 +92,7 @@ const Profile = () => {
                     console.log("Finished fetching activity history. loadingHistory:", false);
                 });
         }
-    }, [currentUser]);
+    }, [currentUser, message]);
 
     const menuItems = [
         { key: 'personal-info', icon: <UserOutlined />, label: 'Thông tin cá nhân' },
