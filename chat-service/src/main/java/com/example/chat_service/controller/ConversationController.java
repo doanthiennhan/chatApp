@@ -2,6 +2,7 @@ package com.example.chat_service.controller;
 
 import java.util.List;
 
+import com.example.chat_service.dto.response.PageResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
@@ -31,18 +32,22 @@ public class ConversationController {
     }
 
     @GetMapping("/my-conversations")
-    ApiResponse<List<ConversationResponse>> myConversations() {
-        return ApiResponse.<List<ConversationResponse>>builder()
-                .data(conversationService.myConversations())
+    ApiResponse<PageResponse<ConversationResponse>> myConversations(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size",   defaultValue = "10" ) int size,
+            @RequestParam(value = "search", defaultValue = "" ) String search
+    ) {
+        return ApiResponse.<PageResponse<ConversationResponse>>builder()
+                .data(conversationService.myConversations(page, size , search))
                 .build();
     }
 
-    @GetMapping("/search")
-    ApiResponse<List<ConversationResponse>> searchConversations(@RequestParam("query") String query) {
-        return ApiResponse.<List<ConversationResponse>>builder()
-                .data(conversationService.searchConversations(query))
-                .build();
-    }
+//    @GetMapping("/search")
+//    ApiResponse<PageResponse<ConversationResponse>> searchConversations(@RequestParam("query") String query) {
+//        return ApiResponse.<PageResponse<ConversationResponse>>builder()
+//                .data(conversationService.searchConversations(query))
+//                .build();
+//    }
 
     @PostMapping("/add-members")
     ApiResponse<ConversationResponse> addMembers(@RequestBody @Valid AddMembersRequest request) {

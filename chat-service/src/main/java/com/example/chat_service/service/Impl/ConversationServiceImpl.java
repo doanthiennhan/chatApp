@@ -7,6 +7,11 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.example.chat_service.dto.response.PageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -38,44 +43,42 @@ public class ConversationServiceImpl implements ConversationService {
     ConversationMapper  mapper;
 
     @Override
-    public List<ConversationResponse> myConversations() {
+    public PageResponse<ConversationResponse> myConversations(int page, int size, String search) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        var conversations = conversationRepository.findAllByParticipantIdsContains(userId);
-        var response = mapper.toResponseList(conversations, userId);
-        response.forEach(conversationResponse -> {
-            if(Objects.equals(conversationResponse.getType(), "private")){
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "modifiedDate"));
+
+        Page<Conversation> conversationsPage = conversationRepository
+                .findAllByParticipantIdsContainsAndNameLike(
+                        userId,
+                        (search == null || search.trim().isEmpty()) ? null : search.trim(),
+                        pageable
+                );
+
+        List<ConversationResponse> responseList = mapper.toResponseList(conversationsPage.getContent(), userId);
+
+        responseList.forEach(conversationResponse -> {
+            if ("private".equalsIgnoreCase(conversationResponse.getType())) {
                 var otherParticipant = conversationResponse.getParticipants().stream()
                         .filter(p -> !p.getId().equals(userId))
                         .findFirst()
                         .orElse(null);
-                if(otherParticipant != null){
+                if (otherParticipant != null) {
                     conversationResponse.setConversationName(otherParticipant.getUsername());
                     conversationResponse.setConversationAvatar(otherParticipant.getAvatar());
                 }
             }
         });
-        return response;
+
+        return PageResponse.<ConversationResponse>builder()
+                .currentPage(conversationsPage.getNumber() + 1)
+                .totalPages(conversationsPage.getTotalPages())
+                .pageSize(conversationsPage.getSize())
+                .totalElements(conversationsPage.getTotalElements())
+                .data(responseList)
+                .build();
     }
 
-    @Override
-    public List<ConversationResponse> searchConversations(String query) {
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        var conversations = conversationRepository.findConversationsByUserIdAndNameContainingIgnoreCase(userId, query);
-        var response = mapper.toResponseList(conversations, userId);
-        response.forEach(conversationResponse -> {
-            if(Objects.equals(conversationResponse.getType(), "private")){
-                var otherParticipant = conversationResponse.getParticipants().stream()
-                        .filter(p -> !p.getId().equals(userId))
-                        .findFirst()
-                        .orElse(null);
-                if(otherParticipant != null){
-                    conversationResponse.setConversationName(otherParticipant.getUsername());
-                    conversationResponse.setConversationAvatar(otherParticipant.getAvatar());
-                }
-            }
-        });
-        return response;
-    }
 
     @Override
     public ConversationResponse create(ConversationRequest request) {
