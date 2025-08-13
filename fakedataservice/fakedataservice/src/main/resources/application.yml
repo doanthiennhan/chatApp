@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: fake-data-service
+  redis:
+    host: localhost
+    port: 6379
+    password: ""
+    timeout: 2000
+
+logging:
+  level:
+    root: INFO
